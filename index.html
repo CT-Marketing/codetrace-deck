@@ -58,8 +58,8 @@ body::before{
 /* ---- shared HUD frame: chamfered corner + 1px glowing edge ----
    The edge is a gradient masked down to a ring, so it can glow along
    its length instead of being a flat 1px border. */
-.rail,.panel,.gatebox,.feed,.tabs{position:relative;clip-path:var(--cut)}
-.rail::before,.panel::before,.gatebox::before,.feed::before,.tabs::before{
+.rail,.panel,.feed,.tabs{position:relative;clip-path:var(--cut)}
+.rail::before,.panel::before,.feed::before,.tabs::before{
   content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
   clip-path:var(--cut);pointer-events:none;z-index:2;
   background:linear-gradient(155deg,
@@ -367,26 +367,32 @@ body::before{
   -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   mask-composite:exclude}
 
-.gatebox{width:100%;max-width:436px;border:0;background:rgba(6,12,18,.70);
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
-  box-shadow:0 34px 90px -34px rgba(0,0,0,.95),0 0 76px -26px rgba(0,228,239,.55)}
-.gatebox::after{content:"";position:absolute;top:11px;right:11px;width:11px;height:11px;
-  border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:.55;pointer-events:none;z-index:2}
-.gatehead{padding:24px 22px 0}
-.gatehead h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:23px;
-  letter-spacing:.14em;text-transform:uppercase;margin:0;color:#fff;
+/* the card itself is liquid glass — rounded, not chamfered, to sit with
+   the video rather than against it. Fill is heavier than the buttons'
+   because a whole card at 1% white is unreadable over moving footage. */
+.gatebox{width:100%;max-width:390px;border-radius:26px;padding:34px 26px 26px;text-align:center;
+  background:rgba(255,255,255,.055);
+  -webkit-backdrop-filter:blur(24px) saturate(130%);backdrop-filter:blur(24px) saturate(130%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.16),0 44px 96px -34px rgba(0,0,0,.9)}
+.gate-mark{display:flex;justify-content:center;margin-bottom:15px}
+.gate-mark svg{width:40px;height:40px;filter:drop-shadow(0 0 15px rgba(0,228,239,.7))}
+.gatebox h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:19px;
+  letter-spacing:.2em;text-transform:uppercase;margin:0 0 24px;color:#fff;
   text-shadow:0 0 26px rgba(0,228,239,.4)}
-.gatehead .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--accent);letter-spacing:.22em}
-.gatebody{padding:16px 22px 0;font-size:13.5px;color:var(--ink-2)}
-.gatebody p{margin:0 0 11px}
-.gatebody a{color:var(--accent)}
-.gatebody code{font-family:"JetBrains Mono",monospace;font-size:12px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(0,228,239,.2);padding:1px 5px;color:var(--ink)}
-.gatemsg{padding:12px 22px 0;font-size:13px;color:var(--critical);min-height:0}
-.gateact{padding:16px 22px 24px}
-.gateact .btn{width:100%;border-radius:999px;min-height:46px;color:#fff;
-  letter-spacing:.16em;background:rgba(255,255,255,.02)}
+.gate-field{width:100%;border-radius:999px;border:0;padding:14px 20px;min-height:50px;
+  background:rgba(255,255,255,.07);color:#fff;text-align:center;
+  font-family:"IBM Plex Sans",sans-serif;font-size:16px;outline:none;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.13)}
+.gate-field::placeholder{color:rgba(255,255,255,.40);letter-spacing:.04em}
+.gate-field:focus{box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 0 0 1px rgba(0,228,239,.6),
+  0 0 26px -6px rgba(0,228,239,.55)}
+.gatemsg{padding:11px 6px 0;font-size:12.5px;color:var(--critical);min-height:0}
+.gateact{padding-top:10px}
+.gateact .btn{width:100%;border-radius:999px;min-height:50px;color:#fff;letter-spacing:.18em}
 .gateact .btn:hover,.gateact .btn:focus-visible{color:#fff;opacity:.9}
+.gate-help{display:inline-block;margin-top:17px;font-family:"JetBrains Mono",monospace;
+  font-size:10.5px;letter-spacing:.11em;color:rgba(255,255,255,.42);text-decoration:none}
+.gate-help:hover,.gate-help:focus-visible{color:var(--accent)}
 
 /* blur-fade-up, per the brief. Delays are set inline per element. */
 @keyframes blurFadeUp{
@@ -453,36 +459,32 @@ body::before{
     </header>
 
     <main class="gate-main">
-      <div class="gatebox">
-        <div class="gatehead bfu" style="animation-delay:150ms">
-          <h1 id="gate-h">Octopus Prime</h1>
-          <span class="sub">ACCESS</span>
+      <div class="gatebox lg">
+        <div class="gate-mark bfu" style="animation-delay:150ms">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" stroke="#00E4EF" stroke-width="1.2" opacity=".35"/>
+            <path d="M16 2a14 14 0 0 1 14 14" stroke="#00E4EF" stroke-width="1.6"/>
+            <path d="M16 30A14 14 0 0 1 2 16" stroke="#00E4EF" stroke-width="1.6"/>
+            <circle cx="16" cy="16" r="6.5" stroke="#00E4EF" stroke-width="1.2" opacity=".7"/>
+            <circle cx="16" cy="16" r="2.2" fill="#00E4EF"/>
+          </svg>
         </div>
-        <div class="gatebody">
-          <p class="bfu" style="animation-delay:250ms">Your tasks live in a private GitHub repository.
-             This page holds none of them &mdash; it needs your <b>access key</b> to read them.</p>
-          <p class="bfu" style="animation-delay:250ms">The key stays in this browser. It goes nowhere
-             except GitHub, and it is not part of this page.</p>
-          <div class="fld bfu" style="padding:4px 0 0;animation-delay:350ms">
-            <label for="gate-tok">Access key</label>
-            <input type="password" id="gate-tok" autocomplete="current-password" spellcheck="false"
-                   placeholder="Paste your key" aria-describedby="gate-msg">
-          </div>
-          <p class="bfu" style="animation-delay:450ms;margin-top:11px;font-size:12.5px;color:var(--ink-3)">
-            No key yet? Make a
-            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
-            scoped to <code>codetrace-deck-data</code> with <b>Contents: Read and write</b>.
-          </p>
-        </div>
+        <h1 id="gate-h" class="bfu" style="animation-delay:250ms">Octopus Prime</h1>
+        <input class="gate-field bfu" style="animation-delay:350ms" type="password" id="gate-tok"
+               autocomplete="current-password" spellcheck="false"
+               placeholder="Access key" aria-label="Access key" aria-describedby="gate-msg">
         <div class="gatemsg" id="gate-msg" role="status" aria-live="polite"></div>
-        <div class="gateact bfu" style="animation-delay:550ms">
+        <div class="gateact bfu" style="animation-delay:450ms">
           <button class="btn lg" id="gate-go" type="button">Connect</button>
         </div>
+        <a class="gate-help bfu" style="animation-delay:550ms"
+           href="https://github.com/settings/personal-access-tokens/new"
+           target="_blank" rel="noopener">NEED A KEY?</a>
       </div>
     </main>
 
     <footer class="gate-foot bfu" style="animation-delay:700ms">
-      OCTOPUS PRIME &middot; CODETRACE &mdash; THE KEY IS THE ONLY LOCK. THERE IS NO PASSWORD.
+      OCTOPUS PRIME &middot; CODETRACE
     </footer>
   </div>
 </div>
