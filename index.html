@@ -453,7 +453,22 @@ body{
   filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
 .gate-logo .wm{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;
   letter-spacing:.22em;text-transform:uppercase}
-.gate-main{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 20px 32px}
+/* Card left, clock right, video down the middle so the character is not
+   sitting behind the sign-in box. Stacks on narrow screens. */
+.gate-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:30px;padding:8px 20px 32px}
+@media (min-width:900px){
+  .gate-main{flex-direction:row;align-items:center;justify-content:space-between;
+    gap:40px;padding:8px 44px 44px}
+}
+.gate-clock{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;flex:none}
+@media (min-width:900px){.gate-clock{align-items:flex-end;text-align:right}}
+.gate-clock .gt{font-family:"Anton",sans-serif;font-size:clamp(52px,8.5vw,92px);line-height:.92;
+  letter-spacing:.01em;color:#fff;font-variant-numeric:tabular-nums}
+.gate-clock .rule{width:64px;height:3px;background:#6FFF00}
+@media (min-width:900px){.gate-clock .rule{width:88px}}
+.gate-clock .gd{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.26em;
+  text-transform:uppercase;color:rgba(255,255,255,.78)}
 .gate-foot{flex:none;padding:0 20px 22px;text-align:center;
   font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.09em;
   color:rgba(255,255,255,.42)}
@@ -679,6 +694,12 @@ body{
            href="https://github.com/settings/personal-access-tokens/new"
            target="_blank" rel="noopener">NEED A KEY?</a>
       </div>
+
+      <div class="gate-clock bfu" style="animation-delay:650ms">
+        <span class="gt" id="gt-t">--:--</span>
+        <span class="rule"></span>
+        <span class="gd" id="gt-d">&nbsp;</span>
+      </div>
     </main>
 
     <footer class="gate-foot bfu" style="animation-delay:700ms">
@@ -892,6 +913,7 @@ body{
       { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" }).format(n).toUpperCase();
     $("clock-t").textContent = hm;
     $("clock-d").textContent = dm;
+    if ($("gt-t")) { $("gt-t").textContent = hm; $("gt-d").textContent = dm; }
     /* the command core shows the same clock, plus how much of the day is gone */
     if ($("cmd-t")) {
       const p = hm.split(":");
