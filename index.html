@@ -577,7 +577,7 @@ body::before{
   <div class="gate-fallback"></div>
   <!-- src is attached by script only while this screen is visible: see startGateVideo -->
   <video class="gate-vid" id="gate-vid" loop muted playsinline preload="none"
-         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"></video>
+         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
   <div class="gate-blur"></div>
 
   <div class="gate-inner">
@@ -614,7 +614,7 @@ body::before{
 </div>
 
 <!-- ---------------- app ---------------- -->
-<!-- same file as the sign-in video, so it is served from cache: no new download -->
+<!-- the deck's own video, separate from the sign-in one -->
 <video class="bgvid" id="bg-vid" loop muted playsinline preload="none"
        data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"></video>
 
@@ -1593,8 +1593,10 @@ body::before{
   }
 
   /* ---------- dashboard background video ----------
-     Same URL as the sign-in screen and CloudFront serves it immutable for a
-     year, so by the time you reach the dashboard it is already cached. */
+     A different file from the sign-in screen, so it is its own ~14 MB
+     download the first time you reach the deck on a device. CloudFront
+     serves it immutable for a year, so that happens once, not per visit.
+     Attached only once the gate is down, and dropped again on sign-out. */
   const FXKEY = "codetrace.deck.novid";
   function fxOff() { try { return localStorage.getItem(FXKEY) === "1"; } catch (e) { return false; } }
   function startBgVideo() {
