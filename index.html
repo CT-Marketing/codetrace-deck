@@ -43,6 +43,19 @@ body{
     repeating-linear-gradient(to bottom,rgba(0,228,239,.022) 0 1px,transparent 1px 3px);
 }
 
+/* ---- dashboard backdrop stack, back to front ----
+   -4 video · -3 scrim · -2 grid · content
+   Same video URL as the sign-in screen, so it is already in the browser
+   cache by the time you get here: no second download. */
+.bgvid{position:fixed;inset:0;z-index:-4;width:100%;height:100%;object-fit:cover;
+  opacity:.38;filter:blur(2px) saturate(120%);pointer-events:none}
+body.novid .bgvid{display:none}
+/* the scrim is what keeps 15px text readable over moving footage */
+body::after{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 0%,rgba(5,9,14,.55),rgba(5,9,14,.88) 70%),
+    linear-gradient(180deg,rgba(5,9,14,.70),rgba(5,9,14,.86))}
+
 /* Drifting grid. Fixed pseudo-element moved with transform rather than an
    animated background-position, so the phone composites it on the GPU
    instead of repainting the whole page 60 times a second. */
@@ -250,9 +263,37 @@ body::before{
 }
 
 /* the clock core */
-.core{position:relative;width:260px;height:260px;flex:none;color:var(--accent)}
+.core{position:relative;width:260px;height:260px;flex:none;color:var(--accent);
+  perspective:760px;transform-style:preserve-3d}
 @media (max-width:420px){.core{width:216px;height:216px}}
 .core svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+
+/* Tilted orbital planes. A circle rotated on X reads as a ring lying flat in
+   space — this is what stops the cluster looking like a flat dial. */
+.orbit{position:absolute;border-radius:50%;pointer-events:none;
+  border:1px dashed rgba(0,228,239,.30);
+  box-shadow:0 0 34px rgba(0,228,239,.14) inset}
+.orbit.o1{inset:-14px;transform:rotateX(74deg)}
+.orbit.o2{inset:-44px;transform:rotateX(78deg);border-color:rgba(0,228,239,.17)}
+.orbit.o3{inset:6px;transform:rotateX(66deg) rotateY(16deg);border-style:solid;
+  border-color:rgba(0,228,239,.13)}
+@media (prefers-reduced-motion:no-preference){
+  .orbit.o1{animation:orb1 22s linear infinite}
+  .orbit.o2{animation:orb2 34s linear infinite}
+  @keyframes orb1{to{transform:rotateX(74deg) rotateZ(360deg)}}
+  @keyframes orb2{to{transform:rotateX(78deg) rotateZ(-360deg)}}
+}
+
+/* radar sweep */
+.sweep{position:absolute;inset:16px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,rgba(0,228,239,0) 0deg,rgba(0,228,239,.20) 42deg,rgba(0,228,239,0) 72deg);
+  -webkit-mask:radial-gradient(circle,transparent 33%,#000 35%,#000 76%,transparent 78%);
+  mask:radial-gradient(circle,transparent 33%,#000 35%,#000 76%,transparent 78%)}
+@media (prefers-reduced-motion:no-preference){.sweep{animation:spin 6.5s linear infinite}}
+
+/* fake volume in the middle so the dial has a lit face */
+.core::before{content:"";position:absolute;inset:24%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 36% 30%,rgba(0,228,239,.20),rgba(0,228,239,.04) 55%,transparent 72%)}
 .corering{filter:drop-shadow(0 0 14px rgba(0,228,239,.35))}
 #core-day{color:var(--accent);filter:drop-shadow(0 0 8px rgba(0,228,239,.9))}
 .corespin{color:var(--accent);opacity:.85}
@@ -299,6 +340,16 @@ body::before{
   color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hudcell .v.hot{color:var(--critical)} .hudcell .v.warm{color:var(--warning)}
 .hudcell .v.dim{color:var(--ink-3)}
+
+/* small ring grids — priority, category, people, horizon */
+.ringgrid{display:grid;gap:15px 10px;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));padding:16px 12px}
+.miniring{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.miniring .gaugering{width:74px;height:74px}
+.miniring .gaugeval .v{font-size:16px}
+.miniring .gaugeval .s{font-size:8px}
+.miniring .nm{font-family:"Chakra Petch",sans-serif;font-size:8.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);text-align:center;line-height:1.35;overflow-wrap:anywhere}
+.ring-dim{color:#3E5C6B}
 
 /* big things, as rings */
 .bigrings{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));padding:14px}
@@ -559,6 +610,10 @@ body::before{
 </div>
 
 <!-- ---------------- app ---------------- -->
+<!-- same file as the sign-in video, so it is served from cache: no new download -->
+<video class="bgvid" id="bg-vid" loop muted playsinline preload="none"
+       data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+
 <div class="wrap">
 
   <header class="rail">
@@ -567,6 +622,7 @@ body::before{
     <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
     <button class="btn primary" id="new-task" type="button">+ New task</button>
     <button class="btn" id="refresh" type="button">Refresh</button>
+    <button class="btn" id="fx" type="button" aria-pressed="true">Video on</button>
     <button class="btn danger" id="signout" type="button">Sign out</button>
   </header>
 
@@ -600,6 +656,10 @@ body::before{
       <div class="phead"><h2>Command</h2><span class="count" id="c-cmd"></span></div>
       <div class="hudwrap">
         <div class="core">
+          <div class="orbit o2"></div>
+          <div class="orbit o1"></div>
+          <div class="orbit o3"></div>
+          <div class="sweep"></div>
           <svg class="corering" viewBox="0 0 260 260" aria-hidden="true">
             <g id="core-ticks"></g>
             <circle cx="130" cy="130" r="104" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
@@ -629,11 +689,24 @@ body::before{
     </div>
 
     <div class="duo">
+      <div class="panel"><div class="phead"><h2>Priority mix</h2><span class="count" id="c-prio"></span></div>
+        <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
+      <div class="panel"><div class="phead"><h2>Load by category</h2><span class="count" id="c-cat"></span></div>
+        <div class="pbody" id="b-cat"><div class="skel"></div></div></div>
+    </div>
+
+    <div class="panel"><div class="phead"><h2>7-day horizon</h2><span class="count" id="c-hz"></span></div>
+      <div class="pbody" id="b-hz"><div class="skel"></div></div></div>
+
+    <div class="duo">
+      <div class="panel"><div class="phead"><h2>Load by person</h2><span class="count" id="c-ppl"></span></div>
+        <div class="pbody" id="b-ppl"><div class="skel"></div></div></div>
       <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
         <div class="pbody" id="b-big"><div class="skel"></div></div></div>
-      <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
-        <div class="pbody" id="b-sys"></div></div>
     </div>
+
+    <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
+      <div class="pbody" id="b-sys"></div></div>
   </section>
 
   <section class="view two" id="v-today">
@@ -807,6 +880,7 @@ body::before{
     $("gate-msg").innerHTML = message || "";
     $("gate").classList.remove("hidden");
     $("gate-tok").value = "";
+    stopBgVideo();
     startGateVideo();
     setTimeout(() => $("gate-tok").focus(), 60);
   }
@@ -814,6 +888,7 @@ body::before{
     $("gate").classList.add("hidden");
     document.body.classList.add("ready");
     stopGateVideo();
+    startBgVideo();
   }
 
   async function tryToken(t) {
@@ -1097,6 +1172,15 @@ body::before{
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
   }
 
+  function miniRing(name, value, sub, pct, tone) {
+    return '<div class="miniring"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 74, 5, 24) +
+      '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
+      (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
+      '<div class="nm">' + esc(name) + "</div></div>";
+  }
+  const ringGrid = (items) => '<div class="ringgrid">' +
+    items.map((i) => miniRing(i.name, i.value, i.sub, i.pct, i.tone)).join("") + "</div>";
+
   function cell(k, v, tone) {
     return '<div class="hudcell"><span class="k">' + esc(k) + '</span><span class="v' +
       (tone ? " " + tone : "") + '">' + esc(v) + "</span></div>";
@@ -1141,6 +1225,63 @@ body::before{
       cell("Last saved", stamp(doc && doc.updated), "dim");
 
     $("c-cmd").textContent = open.length + " open";
+
+    /* ---- priority mix ---- */
+    const share = (n) => (open.length ? n / open.length : 0);
+    const pctTxt = (n) => (open.length ? Math.round((n / open.length) * 100) + "%" : "");
+    const PTONE = { "Urgent Today": "critical", "High": "warning", "Medium": "accent", "Low": "dim" };
+    const prio = PRIORITIES.map((p) => {
+      const n = open.filter((r) => r.priority === p).length;
+      return { name: p === "Urgent Today" ? "Urgent" : p, value: n, sub: pctTxt(n), pct: share(n), tone: PTONE[p] };
+    });
+    const noPrio = open.filter((r) => !r.priority).length;
+    if (noPrio) prio.push({ name: "Not set", value: noPrio, sub: pctTxt(noPrio), pct: share(noPrio), tone: "dim" });
+    $("c-prio").textContent = open.length;
+    $("b-prio").innerHTML = open.length ? ringGrid(prio)
+      : ok("Nothing is open, so there is no priority mix to show.");
+
+    /* ---- load by category ---- */
+    const cats = CATEGORIES.map((c) => {
+      const n = open.filter((r) => r.category === c).length;
+      return { name: c, value: n, sub: pctTxt(n), pct: share(n), tone: n ? "accent" : "dim" };
+    });
+    const noCat = open.filter((r) => !r.category).length;
+    if (noCat) cats.push({ name: "None", value: noCat, sub: pctTxt(noCat), pct: share(noCat), tone: "dim" });
+    $("c-cat").textContent = cats.length;
+    $("b-cat").innerHTML = !open.length ? ok("Nothing is open, so there is nothing to break down by category.")
+      : !cats.length ? warn("No categories are set up. Add a <code>vocab.categories</code> list to tasks.json.")
+      : ringGrid(cats);
+
+    /* ---- 7-day horizon ---- */
+    const hz = [];
+    if (overdue) hz.push({ name: "Overdue", value: overdue, sub: "past due", pct: 1, tone: "critical" });
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.parse(TODAY + "T00:00:00Z") + i * 86400000);
+      const iso = d.toISOString().slice(0, 10);
+      const n = open.filter((r) => r.due === iso).length;
+      const nm = i === 0 ? "Today" : i === 1 ? "Tmrw"
+        : new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short" }).format(d);
+      hz.push({ name: nm, value: n, sub: shortDate(iso),
+                pct: n ? Math.min(1, n / 3) : 0,
+                tone: !n ? "dim" : i <= 2 ? "critical" : "warning" });
+    }
+    const datedSoon = hz.reduce((a, b) => a + (Number(b.value) || 0), 0);
+    $("c-hz").textContent = datedSoon;
+    $("b-hz").innerHTML = ringGrid(hz) + (undated
+      ? warn(undated + " of " + open.length + " open tasks have no date at all, so they cannot appear here.")
+      : "");
+
+    /* ---- load by person ---- */
+    const ppl = PEOPLE.map((p) => {
+      const n = open.filter((r) => Array.isArray(r.people) && r.people.includes(p)).length;
+      return { name: p, value: n, sub: pctTxt(n), pct: share(n), tone: n ? "accent" : "dim" };
+    });
+    const nobody = open.filter((r) => !Array.isArray(r.people) || !r.people.length).length;
+    if (nobody) ppl.push({ name: "Nobody", value: nobody, sub: pctTxt(nobody), pct: share(nobody), tone: "dim" });
+    $("c-ppl").textContent = ppl.length;
+    $("b-ppl").innerHTML = !open.length ? ok("Nothing is open, so nobody is carrying anything.")
+      : !PEOPLE.length ? warn("No people are set up. Add a <code>vocab.people</code> list to tasks.json.")
+      : ringGrid(ppl);
   }
 
   function render() {
@@ -1237,7 +1378,8 @@ body::before{
       : (f ? ok("Nothing matches &ldquo;" + esc(filter) + "&rdquo;.") : ok("Nothing open. Everything is done."));
   }
 
-  const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all"];
+  const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
+                  "b-prio", "b-cat", "b-hz", "b-ppl"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
     ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-today", "t-open", "t-blocked", "t-ask"]
@@ -1445,6 +1587,35 @@ body::before{
     v.dataset.on = "";
     try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {}
   }
+
+  /* ---------- dashboard background video ----------
+     Same URL as the sign-in screen and CloudFront serves it immutable for a
+     year, so by the time you reach the dashboard it is already cached. */
+  const FXKEY = "codetrace.deck.novid";
+  function fxOff() { try { return localStorage.getItem(FXKEY) === "1"; } catch (e) { return false; } }
+  function startBgVideo() {
+    const v = $("bg-vid");
+    if (!v || fxOff() || !v.dataset.src) return;
+    if (!v.getAttribute("src")) { v.muted = true; v.src = v.dataset.src; }
+    const p = v.play && v.play(); if (p && p.catch) p.catch(() => {});
+  }
+  function stopBgVideo() {
+    const v = $("bg-vid"); if (!v) return;
+    try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {}
+  }
+  function applyFx() {
+    const off = fxOff();
+    document.body.classList.toggle("novid", off);
+    const b = $("fx");
+    if (b) { b.textContent = off ? "Video off" : "Video on"; b.setAttribute("aria-pressed", off ? "false" : "true"); }
+  }
+  $("fx").addEventListener("click", () => {
+    const wasOff = fxOff();
+    try { wasOff ? localStorage.removeItem(FXKEY) : localStorage.setItem(FXKEY, "1"); } catch (e) {}
+    applyFx();
+    if (wasOff) startBgVideo(); else stopBgVideo();
+  });
+  applyFx();
 
   /* ---------- entrance, once per session ----------
      sessionStorage, not localStorage: you get the flourish when you first
