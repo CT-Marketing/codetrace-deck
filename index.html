@@ -1212,8 +1212,15 @@ body::before{
     v.addEventListener("error", drop, true);
     v.addEventListener("stalled", () => { if (!v.videoWidth) drop(); });
     setTimeout(() => { if (!v.videoWidth) drop(); }, 8000);
-    const p = v.play && v.play();
-    if (p && p.catch) p.catch(() => {});   /* autoplay refusal is not fatal */
+    /* muted must be set as a property, not just an attribute, before some
+       browsers will allow autoplay at all */
+    v.muted = true;
+    const kick = () => { const p = v.play && v.play(); if (p && p.catch) p.catch(() => {}); };
+    kick();
+    /* If the browser refused autoplay anyway, start it on the first touch.
+       A paused first frame still looks right, so this is a nicety, not a fix. */
+    ["pointerdown", "touchstart", "keydown"].forEach((ev) =>
+      document.addEventListener(ev, kick, { once: true, passive: true }));
   })();
 
   /* ---------- entrance, once per session ----------
