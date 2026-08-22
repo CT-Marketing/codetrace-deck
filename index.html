@@ -402,10 +402,28 @@ body{
   const TOKKEY  = "codetrace.deck.token";
   const TZ      = "Asia/Kuala_Lumpur";
 
+  /* Statuses and priorities are structural — the deadline and blocked logic
+     branches on these exact strings, so they live in the code.
+     Categories and people are your data, not the app's. They are read from
+     tasks.json in the private repo so no colleague's name is ever published
+     on this public page. */
   const STATUSES   = ["Not Started", "In Progress", "Waiting on Someone", "Done"];
   const PRIORITIES = ["Urgent Today", "High", "Medium", "Low"];
-  const CATEGORIES = ["Branding", "Events", "Partnerships", "Admin"];
-  const PEOPLE     = ["Kevin", "Emily", "Pang", "Alicia", "Faris", "Isaiah"];
+  let   CATEGORIES = [];
+  let   PEOPLE     = [];
+
+  /* If tasks.json has no vocab block, fall back to whatever the tasks
+     themselves already use, so the editor still works rather than showing
+     an empty picker with no explanation. */
+  function loadVocab(d) {
+    const v = (d && d.vocab) || {};
+    CATEGORIES = Array.isArray(v.categories) && v.categories.length
+      ? v.categories.slice()
+      : [...new Set((d.tasks || []).map((t) => t.category).filter(Boolean))].sort();
+    PEOPLE = Array.isArray(v.people) && v.people.length
+      ? v.people.slice()
+      : [...new Set((d.tasks || []).flatMap((t) => Array.isArray(t.people) ? t.people : []))].sort();
+  }
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -571,6 +589,7 @@ body{
       handleReadError(e); return;
     }
     doc = parsed; sha = j.sha; rows = parsed.tasks; hasData = true; lastRead = Date.now();
+    loadVocab(parsed);
     clearBanner();
     render();
   }
@@ -819,6 +838,12 @@ body{
 
   /* ---------- editor ---------- */
   function segment(host, options, selected, multi) {
+    if (!options.length) {
+      host.innerHTML = '<span style="font-size:13px;color:var(--ink-3)">' +
+        "No options set. Add a <code>vocab</code> list to tasks.json in the data repo." + "</span>";
+      host.onclick = null;
+      return;
+    }
     host.innerHTML = options.map((o) =>
       '<button type="button" data-v="' + esc(o) + '" aria-pressed="' +
       (multi ? (selected.includes(o) ? "true" : "false") : (selected === o ? "true" : "false")) +
