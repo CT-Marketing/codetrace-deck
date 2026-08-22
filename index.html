@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Command Deck</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05090E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Command Deck">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --ground:#05090E; --panel:#0B131C; --panel-2:#0E1922;
+  --edge:#183440; --edge-soft:#112531;
+  --ink:#DDEEF4; --ink-2:#8AAAB9; --ink-3:#4E6B7A;
+  --accent:#00E4EF; --accent-dim:#0E7A85; --accent-ghost:rgba(0,228,239,.10);
+  --critical:#FF6B6B; --warning:#FFB020; --good:#4ADE80; --question:#B18BFF;
+  --sp:clamp(12px,3vw,22px); --gap:14px; --barh:60px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.5;overflow-x:hidden;
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%,rgba(0,228,239,.07),transparent 70%),
+    repeating-linear-gradient(to bottom,rgba(0,228,239,.022) 0 1px,transparent 1px 3px);
+}
+.wrap{max-width:1500px;margin:0 auto;padding:var(--sp) var(--sp) 28px}
+@media (max-width:899px){
+  body{padding-bottom:calc(var(--barh) + env(safe-area-inset-bottom))}
+}
+
+/* rail */
+.rail{border:1px solid var(--edge);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  padding:13px 15px;display:flex;flex-wrap:wrap;align-items:center;gap:11px 18px;position:relative}
+.rail::before,.rail::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--accent);opacity:.7}
+.rail::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.rail::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
+.brand h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:clamp(16px,3.4vw,21px);
+  letter-spacing:.14em;text-transform:uppercase;margin:0;white-space:nowrap}
+.brand .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em;white-space:nowrap}
+.clock{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px;line-height:1.25}
+.clock .t{font-size:19px;font-weight:700;color:var(--accent)}
+.clock .d{font-size:11px;color:var(--ink-3);letter-spacing:.08em}
+.btn{font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-2);border:1px solid var(--edge);padding:9px 13px;background:transparent;cursor:pointer;
+  transition:border-color .15s,color .15s;min-height:38px;text-decoration:none;display:inline-flex;
+  align-items:center;justify-content:center}
+.btn:hover,.btn:focus-visible{border-color:var(--accent-dim);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{border-color:var(--accent-dim);color:var(--accent);background:var(--accent-ghost)}
+.btn.danger:hover,.btn.danger:focus-visible{border-color:var(--critical);color:var(--critical)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+@media (max-width:899px){#new-task{display:none}}
+
+.conn{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.live{background:var(--good);box-shadow:0 0 0 3px rgba(74,222,128,.15)}
+.dot.stale{background:var(--warning);box-shadow:0 0 0 3px rgba(255,176,32,.15)}
+.dot.down{background:var(--critical);box-shadow:0 0 0 3px rgba(255,107,107,.15)}
+@media (prefers-reduced-motion:no-preference){
+  .dot.live{animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+}
+
+/* conflict / error banner */
+.banner{display:none;margin-top:var(--gap);border:1px solid var(--critical);
+  background:rgba(255,107,107,.07);padding:13px 15px;gap:12px;align-items:flex-start}
+.banner.on{display:flex}
+.banner.warn{border-color:var(--warning);background:rgba(255,176,32,.07)}
+.banner .mk{font-family:"JetBrains Mono",monospace;color:var(--critical);flex:none;font-size:13px;margin-top:2px}
+.banner.warn .mk{color:var(--warning)}
+.banner .bt{flex:1;min-width:0;font-size:13.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.banner .bt b{color:var(--ink);font-weight:600}
+.banner .ba{display:flex;gap:8px;flex-wrap:wrap;flex:none}
+
+/* stats */
+.feed{display:grid;gap:1px;background:var(--edge-soft);border:1px solid var(--edge);border-top:0;
+  grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.stat{background:var(--panel);padding:11px 12px;display:flex;flex-direction:column;gap:3px}
+.stat .n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;font-size:23px;font-weight:700;line-height:1}
+.stat .l{font-family:"Chakra Petch",sans-serif;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.is-critical{color:var(--critical)} .is-warning{color:var(--warning)}
+.is-good{color:var(--good)} .is-question{color:var(--question)} .is-accent{color:var(--accent)}
+
+/* tab bar */
+.tabs{display:flex;background:var(--panel);border:1px solid var(--edge);border-top:0}
+.tabs button{
+  flex:1;min-width:0;background:transparent;border:0;border-right:1px solid var(--edge-soft);
+  padding:12px 6px 11px;cursor:pointer;color:var(--ink-3);display:flex;flex-direction:column;
+  align-items:center;gap:4px;font-family:"Chakra Petch",sans-serif;font-size:10.5px;
+  letter-spacing:.13em;text-transform:uppercase;position:relative;min-height:var(--barh)
+}
+.tabs button:last-child{border-right:0}
+.tabs button .bnum{font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;
+  font-variant-numeric:tabular-nums;line-height:1;color:var(--ink-2)}
+.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-ghost)}
+.tabs button[aria-selected=true] .bnum{color:var(--accent)}
+.tabs button[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (max-width:899px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;border:0;border-top:1px solid var(--edge);
+    padding-bottom:env(safe-area-inset-bottom);background:var(--panel-2)}
+  .tabs button[aria-selected=true]::after{top:auto;bottom:auto;top:0}
+}
+
+/* views */
+.view{display:none;margin-top:var(--gap)}
+.view.on{display:grid;gap:var(--gap);grid-template-columns:1fr}
+@media (min-width:900px){.view.on.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.panel{border:1px solid var(--edge);background:var(--panel);display:flex;flex-direction:column;min-width:0;position:relative}
+.panel::after{content:"";position:absolute;top:-1px;right:-1px;width:14px;height:14px;
+  border-top:1px solid var(--accent-dim);border-right:1px solid var(--accent-dim);pointer-events:none}
+.phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--edge-soft);
+  background:linear-gradient(90deg,var(--accent-ghost),transparent 60%)}
+.phead h2{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.phead .count{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;
+  font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.pbody{padding:4px 0;flex:1;min-height:66px}
+
+.filterbar{padding:10px 14px;border-bottom:1px solid var(--edge-soft)}
+.filterbar input{width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
+  font-family:"IBM Plex Sans",sans-serif;font-size:15px;padding:9px 11px;min-height:40px}
+.filterbar input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+
+/* rows */
+.row{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--edge-soft);align-items:flex-start}
+.row:last-child{border-bottom:0}
+.tick{flex:none;width:24px;height:24px;margin-top:1px;border:1px solid var(--edge);background:transparent;
+  cursor:pointer;color:var(--ink-3);font-size:13px;line-height:1;display:flex;align-items:center;
+  justify-content:center;padding:0}
+.tick:hover,.tick:focus-visible{border-color:var(--good);color:var(--good)}
+.tick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tick.on{border-color:var(--good);color:var(--good)}
+.tick[disabled]{opacity:.4;cursor:progress}
+.rmain{flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.rmain:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rtop{display:flex;align-items:baseline;gap:8px;min-width:0}
+.ref{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex:none}
+.title{font-weight:500;overflow-wrap:anywhere;flex:1;min-width:0}
+.dcell{flex:none;align-self:flex-start;margin-top:2px;text-align:right;font-family:"JetBrains Mono",monospace;
+  font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.04em;line-height:1.35;
+  color:var(--ink-3);white-space:nowrap;max-width:82px}
+.dcell.hot{color:var(--critical);font-weight:700}
+.dcell.warm{color:var(--warning)}
+.dcell.none{color:#33505E}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;font-family:"JetBrains Mono",monospace;font-size:10.5px}
+.chip{border:1px solid var(--edge);padding:2px 7px;color:var(--ink-2);letter-spacing:.06em;white-space:nowrap}
+.chip.status{border-color:currentColor}
+.chip.critical{color:var(--critical)} .chip.warning{color:var(--warning)}
+.chip.good{color:var(--good)} .chip.accent{color:var(--accent);border-color:var(--accent-dim)}
+.qtext{margin-top:8px;padding-left:11px;border-left:2px solid var(--question);color:var(--ink-2);font-size:13.5px;overflow-wrap:anywhere}
+.wtext{margin-top:8px;padding-left:11px;border-left:2px solid var(--warning);color:var(--ink-2);font-size:13.5px;overflow-wrap:anywhere}
+
+/* meters */
+.meterrow{padding:11px 14px;border-bottom:1px solid var(--edge-soft)}
+.meterrow:last-child{border-bottom:0}
+.meterhead{display:flex;align-items:baseline;gap:10px;font-size:14px}
+.meterhead .v{margin-left:auto;font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px;flex:none}
+.track{margin-top:8px;height:7px;background:var(--edge-soft);overflow:hidden}
+.fill{height:100%;background:var(--accent-dim)}
+.fill.good{background:var(--good)} .fill.warning{background:var(--warning)}
+
+/* notes */
+.empty{padding:16px 14px;color:var(--ink-3);font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
+.empty .mk{font-family:"JetBrains Mono",monospace;color:var(--accent-dim);flex:none;font-size:13px}
+.err{border-left:2px solid var(--critical)} .err .mk{color:var(--critical)}
+.warnbox{border-left:2px solid var(--warning)} .warnbox .mk{color:var(--warning)}
+.empty b{color:var(--ink-2);font-weight:600}
+.empty code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--panel-2);
+  border:1px solid var(--edge);padding:1px 5px;color:var(--ink-2)}
+
+.sysrow{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--edge-soft)}
+.sysrow:last-child{border-bottom:0}
+.sysrow .dot{margin-top:6px}
+.sysrow .nm{font-family:"Chakra Petch",sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;color:var(--ink-2)}
+.sysrow .ds{font-size:13px;color:var(--ink-3);margin-top:3px;overflow-wrap:anywhere}
+
+.foot{margin-top:20px;padding-top:13px;border-top:1px solid var(--edge-soft);
+  font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:6px 18px}
+.skel{height:11px;background:linear-gradient(90deg,var(--edge-soft),var(--panel-2),var(--edge-soft));margin:13px 14px}
+@media (prefers-reduced-motion:no-preference){
+  .skel{background-size:200% 100%;animation:sweep 1.5s linear infinite}
+  @keyframes sweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+}
+
+/* floating add */
+.fab{position:fixed;right:16px;bottom:calc(var(--barh) + 16px + env(safe-area-inset-bottom));z-index:31;
+  width:54px;height:54px;border-radius:50%;border:1px solid var(--accent-dim);background:#0A2A31;
+  color:var(--accent);font-size:26px;line-height:1;cursor:pointer;display:none;
+  align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.5)}
+.fab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:899px){body.ready .fab{display:flex}}
+
+/* editor sheet */
+.scrim{position:fixed;inset:0;background:rgba(2,6,10,.8);display:none;z-index:40;align-items:flex-end;justify-content:center}
+.scrim.on{display:flex}
+@media (min-width:720px){.scrim.on{align-items:center;padding:24px}}
+.sheet{background:var(--panel);border:1px solid var(--edge);width:100%;max-width:620px;
+  max-height:92vh;overflow-y:auto;padding:0 0 calc(18px + env(safe-area-inset-bottom))}
+.shead{position:sticky;top:0;background:var(--panel-2);border-bottom:1px solid var(--edge);
+  padding:13px 15px;display:flex;align-items:center;gap:12px;z-index:1}
+.shead h3{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
+.shead .x{margin-left:auto}
+.fld{padding:12px 15px 0}
+.fld label{display:block;font-family:"Chakra Petch",sans-serif;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.fld input[type=text],.fld input[type=date],.fld input[type=number],.fld input[type=password],.fld textarea{
+  width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
+  font-family:"IBM Plex Sans",sans-serif;font-size:16px;padding:10px 11px;min-height:44px}
+.fld textarea{min-height:70px;resize:vertical}
+.fld input:focus,.fld textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent-dim)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font-family:"JetBrains Mono",monospace;font-size:11px;background:transparent;
+  border:1px solid var(--edge);color:var(--ink-3);padding:9px 11px;cursor:pointer;min-height:38px}
+.seg button[aria-pressed=true]{border-color:var(--accent-dim);color:var(--accent);background:var(--accent-ghost)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sactions{display:flex;gap:9px;padding:18px 15px 0;flex-wrap:wrap}
+.sactions .btn{flex:1;min-width:120px}
+.smsg{padding:12px 15px 0;font-size:13px;color:var(--ink-2)}
+.smsg.bad{color:var(--critical)}
+.srow{display:flex;gap:10px;flex-wrap:wrap}
+.srow>*{flex:1;min-width:150px}
+
+/* token gate */
+/* Shown by default and hidden by script, so a signed-out visitor never
+   sees a flash of the dashboard shell before the gate paints. */
+.gate{position:fixed;inset:0;z-index:60;background:var(--ground);overflow-y:auto;
+  display:flex;align-items:center;justify-content:center;padding:24px 16px;
+  background-image:radial-gradient(1000px 500px at 50% -10%,rgba(0,228,239,.08),transparent 70%)}
+.gate.hidden{display:none}
+.gatebox{width:100%;max-width:460px;border:1px solid var(--edge);background:var(--panel);position:relative}
+.gatebox::before,.gatebox::after{content:"";position:absolute;width:12px;height:12px;border:1px solid var(--accent);opacity:.7}
+.gatebox::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.gatebox::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.gatehead{padding:20px 20px 0}
+.gatehead h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:20px;
+  letter-spacing:.14em;text-transform:uppercase;margin:0}
+.gatehead .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em}
+.gatebody{padding:16px 20px 0;font-size:14px;color:var(--ink-2)}
+.gatebody p{margin:0 0 11px}
+.gatebody a{color:var(--accent)}
+.gatebody ul{margin:0 0 11px;padding-left:19px}
+.gatebody li{margin-bottom:4px}
+.gatebody code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--panel-2);
+  border:1px solid var(--edge);padding:1px 5px;color:var(--ink)}
+.gatemsg{padding:12px 20px 0;font-size:13px;color:var(--critical);min-height:0}
+.gateact{padding:16px 20px 22px}
+.gateact .btn{width:100%}
+</style>
+</head>
+<body>
+
+<!-- ---------------- token gate ---------------- -->
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+  <div class="gatebox">
+    <div class="gatehead">
+      <h1 id="gate-h">Command Deck</h1>
+      <span class="sub">SIGN IN</span>
+    </div>
+    <div class="gatebody">
+      <p>This page is an empty shell. Your tasks live in a private GitHub repository, and it needs a
+         <b>personal access token</b> to read them.</p>
+      <p>The token stays in this browser only. It is never sent anywhere except GitHub, and it is not
+         part of this page.</p>
+      <p>If you do not have one yet, make a
+         <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> with:</p>
+      <ul>
+        <li>Repository access: <b>Only select repositories</b> &rarr; <code>codetrace-deck-data</code></li>
+        <li>Permissions &rarr; Repository permissions &rarr; <b>Contents: Read and write</b></li>
+      </ul>
+      <div class="fld" style="padding:4px 0 0">
+        <label for="gate-tok">Token</label>
+        <input type="password" id="gate-tok" autocomplete="current-password" spellcheck="false"
+               placeholder="Paste the token here" aria-describedby="gate-msg">
+      </div>
+    </div>
+    <div class="gatemsg" id="gate-msg" role="status" aria-live="polite"></div>
+    <div class="gateact"><button class="btn primary" id="gate-go" type="button">Connect</button></div>
+  </div>
+</div>
+
+<!-- ---------------- app ---------------- -->
+<div class="wrap">
+
+  <header class="rail">
+    <div class="brand"><h1>Command Deck</h1><span class="sub">CODETRACE</span></div>
+    <div class="clock"><span class="t" id="clock-t">--:--</span><span class="d" id="clock-d">&nbsp;</span></div>
+    <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
+    <button class="btn primary" id="new-task" type="button">+ New task</button>
+    <button class="btn" id="refresh" type="button">Refresh</button>
+    <button class="btn danger" id="signout" type="button">Sign out</button>
+  </header>
+
+  <div class="banner" id="banner" role="alert">
+    <span class="mk">!!</span>
+    <div class="bt" id="banner-t"></div>
+    <div class="ba">
+      <button class="btn" id="banner-reload" type="button">Reload</button>
+      <button class="btn" id="banner-x" type="button">Dismiss</button>
+    </div>
+  </div>
+
+  <div class="feed">
+    <div class="stat"><span class="n is-accent" id="s-open">–</span><span class="l">Open</span></div>
+    <div class="stat"><span class="n is-critical" id="s-today">–</span><span class="l">Today</span></div>
+    <div class="stat"><span class="n is-warning" id="s-wait">–</span><span class="l">Blocked</span></div>
+    <div class="stat"><span class="n is-question" id="s-q">–</span><span class="l">Questions</span></div>
+    <div class="stat"><span class="n is-good" id="s-done">–</span><span class="l">Done</span></div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" data-view="today" aria-selected="true"><span class="bnum" id="t-today">–</span>Today</button>
+    <button role="tab" data-view="open" aria-selected="false"><span class="bnum" id="t-open">–</span>All open</button>
+    <button role="tab" data-view="blocked" aria-selected="false"><span class="bnum" id="t-blocked">–</span>Blocked</button>
+    <button role="tab" data-view="ask" aria-selected="false"><span class="bnum" id="t-ask">–</span>Decide</button>
+    <button role="tab" data-view="track" aria-selected="false"><span class="bnum" id="t-track">–</span>Track</button>
+  </nav>
+
+  <section class="view on two" id="v-today">
+    <div class="panel"><div class="phead"><h2>Today &amp; next 2 days</h2><span class="count" id="c-today"></span></div>
+      <div class="pbody" id="b-today"><div class="skel"></div><div class="skel"></div></div></div>
+    <div class="panel"><div class="phead"><h2>Later this week</h2><span class="count" id="c-week"></span></div>
+      <div class="pbody" id="b-week"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
+
+  <section class="view" id="v-open">
+    <div class="panel"><div class="phead"><h2>Everything open</h2><span class="count" id="c-all"></span></div>
+      <div class="filterbar"><input type="search" id="filter" placeholder="Filter by name, person or category" autocomplete="off"></div>
+      <div class="pbody" id="b-all"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
+
+  <section class="view" id="v-blocked">
+    <div class="panel"><div class="phead"><h2>Waiting on someone</h2><span class="count" id="c-wait"></span></div>
+      <div class="pbody" id="b-wait"><div class="skel"></div></div></div>
+  </section>
+
+  <section class="view" id="v-ask">
+    <div class="panel"><div class="phead"><h2>Decisions waiting on you</h2><span class="count" id="c-q"></span></div>
+      <div class="pbody" id="b-q"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
+
+  <section class="view two" id="v-track">
+    <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
+      <div class="pbody" id="b-big"><div class="skel"></div></div></div>
+    <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
+      <div class="pbody" id="b-sys"></div></div>
+  </section>
+
+  <div class="foot">
+    <span id="foot-store">Store: GitHub</span>
+    <span id="foot-upd">Last saved &mdash;</span>
+    <span id="foot-note"></span>
+  </div>
+</div>
+
+<button class="fab" id="fab" type="button" aria-label="New task">+</button>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+  <div class="sheet">
+    <div class="shead"><h3 id="sh-title">Edit task</h3><button class="btn x" id="sh-close" type="button">Close</button></div>
+    <div class="fld"><label for="f-task">Task</label><input type="text" id="f-task" autocomplete="off"></div>
+    <div class="fld"><label>Status</label><div class="seg" id="f-status"></div></div>
+    <div class="fld"><label>Priority</label><div class="seg" id="f-priority"></div></div>
+    <div class="fld"><label>Category</label><div class="seg" id="f-category"></div></div>
+    <div class="fld"><label>People</label><div class="seg" id="f-people"></div></div>
+    <div class="fld srow">
+      <div><label for="f-due">Due</label><input type="date" id="f-due"></div>
+      <div><label for="f-prog">Progress %</label><input type="number" id="f-prog" min="0" max="100" step="5" inputmode="numeric"></div>
+    </div>
+    <div class="fld"><label for="f-wait">Waiting on</label><input type="text" id="f-wait" autocomplete="off" placeholder="Who or what is blocking this"></div>
+    <div class="fld"><label for="f-q">Open question</label><textarea id="f-q" placeholder="The decision to make before this can finish"></textarea></div>
+    <div class="smsg" id="sh-msg" role="status" aria-live="polite"></div>
+    <div class="sactions">
+      <button class="btn primary" id="sh-save" type="button">Save</button>
+      <button class="btn" id="sh-cancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- configuration. No secrets here. ---------- */
+  const OWNER   = "CT-Marketing";
+  const REPO    = "codetrace-deck-data";
+  const PATH    = "tasks.json";
+  const API     = "https://api.github.com";
+  const APIVER  = "2022-11-28";
+  const TOKKEY  = "codetrace.deck.token";
+  const TZ      = "Asia/Kuala_Lumpur";
+
+  const STATUSES   = ["Not Started", "In Progress", "Waiting on Someone", "Done"];
+  const PRIORITIES = ["Urgent Today", "High", "Medium", "Low"];
+  const CATEGORIES = ["Branding", "Events", "Partnerships", "Admin"];
+  const PEOPLE     = ["Kevin", "Emily", "Pang", "Alicia", "Faris", "Isaiah"];
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---------- state ---------- */
+  let token = null;          // in memory + localStorage, never in the page source
+  let doc = null;            // the parsed tasks.json
+  let sha = null;            // blob sha of the copy we last read — the safety catch on writes
+  let rows = [];             // doc.tasks
+  let hasData = false, editing = null, filter = "", busy = false, lastRead = 0;
+
+  /* ---------- clock ---------- */
+  function tick() {
+    const n = new Date();
+    $("clock-t").textContent = new Intl.DateTimeFormat("en-GB",
+      { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(n);
+    $("clock-d").textContent = new Intl.DateTimeFormat("en-GB",
+      { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" }).format(n).toUpperCase();
+  }
+  tick(); setInterval(tick, 20000);
+
+  const ymd = (d) => new Intl.DateTimeFormat("en-CA",
+    { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  const TODAY = ymd(new Date());
+  const dayDiff = (a, b) => Math.round((Date.parse(a + "T00:00:00Z") - Date.parse(b + "T00:00:00Z")) / 86400000);
+
+  function conn(state, text) {
+    $("conn-dot").className = "dot" + (state ? " " + state : "");
+    $("conn-txt").textContent = text;
+  }
+
+  /* ---------- UTF-8 safe base64 ----------
+     btoa() alone throws on anything outside Latin-1, and the task list is full of
+     em-dashes. Encode to UTF-8 bytes first, decode back to UTF-8 on the way in. */
+  function b64encode(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "", CH = 0x8000;
+    for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+    return btoa(bin);
+  }
+  function b64decode(b64) {
+    const bin = atob(String(b64).replace(/\s/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  /* ---------- banner ---------- */
+  function banner(html, kind, showReload) {
+    $("banner-t").innerHTML = html;
+    $("banner").className = "banner on" + (kind === "warn" ? " warn" : "");
+    $("banner-reload").style.display = showReload === false ? "none" : "";
+  }
+  function clearBanner() { $("banner").className = "banner"; }
+  $("banner-x").addEventListener("click", clearBanner);
+  $("banner-reload").addEventListener("click", () => { clearBanner(); read(true); });
+
+  /* ---------- token gate ---------- */
+  function showGate(message) {
+    token = null;
+    try { localStorage.removeItem(TOKKEY); } catch (e) {}
+    document.body.classList.remove("ready");
+    $("gate-msg").innerHTML = message || "";
+    $("gate").classList.remove("hidden");
+    $("gate-tok").value = "";
+    setTimeout(() => $("gate-tok").focus(), 60);
+  }
+  function hideGate() { $("gate").classList.add("hidden"); document.body.classList.add("ready"); }
+
+  async function tryToken(t) {
+    $("gate-go").disabled = true;
+    $("gate-msg").innerHTML = "Checking&hellip;";
+    token = t;
+    try {
+      await read(true, true);
+      try { localStorage.setItem(TOKKEY, t); } catch (e) {}
+      hideGate();
+    } catch (e) {
+      token = null;
+      $("gate-msg").innerHTML = gateError(e);
+    } finally {
+      $("gate-go").disabled = false;
+    }
+  }
+  function gateError(e) {
+    if (e && e.status === 401) return "GitHub rejected that token. Check you pasted all of it, and that it has not expired.";
+    if (e && e.status === 404) return "The token works, but it cannot see <code>" + esc(REPO) + "</code>. " +
+      "Check it is scoped to that repository and has <b>Contents: Read and write</b>.";
+    if (e && e.status === 403) return "GitHub refused the request (403). Usually a missing <b>Contents</b> permission, or a rate limit.";
+    if (e && e.kind === "offline") return "Could not reach GitHub. Check your connection and try again.";
+    if (e && e.kind === "badjson") return "The token worked, but <code>" + esc(PATH) + "</code> is not valid JSON.";
+    return "Could not connect: " + esc((e && e.message) || "unknown error");
+  }
+  $("gate-go").addEventListener("click", () => {
+    const t = $("gate-tok").value.trim();
+    if (!t) { $("gate-msg").textContent = "Paste the token first."; return; }
+    tryToken(t);
+  });
+  $("gate-tok").addEventListener("keydown", (e) => { if (e.key === "Enter") $("gate-go").click(); });
+  $("signout").addEventListener("click", () => {
+    doc = null; rows = []; sha = null; hasData = false;
+    showGate("Signed out. The token has been removed from this browser.");
+  });
+
+  /* ---------- GitHub contents API ---------- */
+  function ghHeaders() {
+    return {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": APIVER
+    };
+  }
+  const CONTENTS = () => API + "/repos/" + encodeURIComponent(OWNER) + "/" +
+    encodeURIComponent(REPO) + "/contents/" + PATH;
+
+  async function ghFetch(url, init) {
+    let r;
+    try { r = await fetch(url, init); }
+    catch (e) { throw { kind: "offline", message: "network unreachable" }; }
+    if (r.status === 401) { throw { status: 401 }; }
+    if (!r.ok) {
+      let body = null;
+      try { body = await r.json(); } catch (e) {}
+      throw {
+        status: r.status,
+        message: (body && body.message) || r.statusText,
+        remaining: r.headers.get("X-RateLimit-Remaining"),
+        reset: r.headers.get("X-RateLimit-Reset")
+      };
+    }
+    return r.json();
+  }
+
+  /* Read tasks.json. Cache-busted so a phone edit shows up on refresh. */
+  async function read(force, bare) {
+    if (!token) return;
+    if (!force && Date.now() - lastRead < 30000) return;
+    conn(hasData ? "stale" : "", hasData ? "syncing" : "reading");
+    let j;
+    try {
+      j = await ghFetch(CONTENTS() + "?t=" + Date.now(), { headers: ghHeaders(), cache: "no-store" });
+    } catch (e) {
+      if (bare) throw e;
+      handleReadError(e);
+      return;
+    }
+    if (j.encoding !== "base64" || typeof j.content !== "string") {
+      const e = { kind: "badjson", message: "GitHub did not return file content" };
+      if (bare) throw e;
+      handleReadError(e); return;
+    }
+    let parsed;
+    try { parsed = JSON.parse(b64decode(j.content)); }
+    catch (err) {
+      const e = { kind: "badjson", message: err.message };
+      if (bare) throw e;
+      handleReadError(e); return;
+    }
+    if (!parsed || !Array.isArray(parsed.tasks)) {
+      const e = { kind: "badjson", message: "no tasks array" };
+      if (bare) throw e;
+      handleReadError(e); return;
+    }
+    doc = parsed; sha = j.sha; rows = parsed.tasks; hasData = true; lastRead = Date.now();
+    clearBanner();
+    render();
+  }
+
+  /* Write tasks.json back. Always sends the sha we last read — that is what
+     makes GitHub reject the write rather than let it clobber a newer copy. */
+  async function write(mutate, commitMsg) {
+    if (busy) throw { kind: "busy", message: "a save is already in flight" };
+    if (!doc) throw { kind: "nodata", message: "nothing loaded" };
+    busy = true;
+    conn("stale", "saving");
+    try {
+      const next = JSON.parse(JSON.stringify(doc));
+      mutate(next);
+      next.version = 1;
+      next.updated = new Date().toISOString();
+      const body = JSON.stringify(next, null, 2) + "\n";
+      const j = await ghFetch(CONTENTS(), {
+        method: "PUT",
+        headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+        body: JSON.stringify({ message: commitMsg, content: b64encode(body), sha: sha })
+      });
+      doc = next; rows = next.tasks; sha = j.content && j.content.sha ? j.content.sha : sha;
+      lastRead = Date.now();
+      clearBanner();
+      render();
+    } finally {
+      busy = false;
+    }
+  }
+
+  function isConflict(e) {
+    return e && (e.status === 409 ||
+      (e.status === 422 && /sha|does not match|stale/i.test(String(e.message || ""))));
+  }
+  function conflictBanner() {
+    banner("<b>Your copy is out of date.</b> The task file changed on GitHub since this page read it " +
+      "&mdash; probably a save from your phone or another tab. Nothing was overwritten and your edit was " +
+      "<b>not</b> saved. Reload to get the current list, then make the change again.", "", true);
+  }
+
+  function handleReadError(e) {
+    if (e && e.status === 401) { showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+    conn("down", "error");
+    if (e && e.kind === "offline") {
+      if (hasData) banner("Could not reach GitHub. You are looking at the copy loaded at " +
+        stamp(doc && doc.updated) + ". Nothing is lost &mdash; try Refresh when you are back online.", "warn", true);
+      else pageMessage("Could not reach GitHub. Check your connection, then reload the page.", "err");
+      return;
+    }
+    if (e && e.status === 404) {
+      pageMessage("The token is valid but cannot see <code>" + esc(OWNER) + "/" + esc(REPO) + "</code>. " +
+        "It needs that repository selected, with <b>Contents: Read and write</b>. Sign out and paste a corrected token.", "err");
+      return;
+    }
+    if (e && e.status === 403) {
+      const rem = e.remaining;
+      pageMessage(rem === "0"
+        ? "GitHub rate limit reached. It resets within the hour &mdash; try Refresh later."
+        : "GitHub refused the request (403). Usually a missing <b>Contents</b> permission on the token.", "err");
+      return;
+    }
+    if (e && e.kind === "badjson") {
+      pageMessage("<code>" + esc(PATH) + "</code> could not be read as a task list. " +
+        "It may have been hand-edited into invalid JSON. Nothing has been changed &mdash; " +
+        "check the file on github.com.", "err");
+      return;
+    }
+    if (!hasData) pageMessage("Something failed: " + esc((e && e.message) || "no detail given"), "err");
+  }
+
+  function stamp(iso) {
+    if (!iso) return "an unknown time";
+    const d = new Date(iso);
+    if (isNaN(d)) return "an unknown time";
+    return new Intl.DateTimeFormat("en-GB",
+      { timeZone: TZ, day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }).format(d);
+  }
+
+  /* ---------- validation. Reject a typo rather than store it. ---------- */
+  function validate(t) {
+    const e = [];
+    if (!t.task || !String(t.task).trim()) e.push("The task needs a name.");
+    if (!STATUSES.includes(t.status)) e.push("Status must be one of: " + STATUSES.join(", ") + ".");
+    if (t.priority !== null && !PRIORITIES.includes(t.priority)) e.push("Priority must be one of: " + PRIORITIES.join(", ") + ", or blank.");
+    if (t.category !== null && !CATEGORIES.includes(t.category)) e.push("Category must be one of: " + CATEGORIES.join(", ") + ", or blank.");
+    if (!Array.isArray(t.people)) e.push("People must be a list.");
+    else t.people.forEach((p) => { if (!PEOPLE.includes(p)) e.push("“" + p + "” is not one of the known people."); });
+    if (t.due !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(t.due))) e.push("Due date must be a real date.");
+    if (t.progress !== null && (!Number.isFinite(t.progress) || t.progress < 0 || t.progress > 100))
+      e.push("Progress must be a number from 0 to 100, or blank.");
+    return e;
+  }
+
+  /* ---------- rendering ---------- */
+  function note(kind, mark, html) {
+    return '<div class="empty ' + kind + '"><span class="mk">' + mark + '</span><div>' + html + "</div></div>";
+  }
+  const ok = (h) => note("", "//", h);
+  const warn = (h) => note("warnbox", "!?", h);
+
+  const MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  function shortDate(iso) {
+    const p = String(iso).split("-");
+    return p.length === 3 ? Number(p[2]) + " " + MON[Number(p[1]) - 1] : esc(iso);
+  }
+  /* right-hand deadline cell. Red only when it is actually pressing —
+     everything red would mean nothing is red. */
+  function dueCell(t) {
+    if (t.status === "Done") return '<span class="dcell none">done</span>';
+    if (!t.due) return '<span class="dcell none">no date</span>';
+    const n = dayDiff(t.due, TODAY);
+    if (n < 0)  return '<span class="dcell hot">OVERDUE<br>' + Math.abs(n) + " day" + (Math.abs(n) === 1 ? "" : "s") + "</span>";
+    if (n === 0) return '<span class="dcell hot">TODAY</span>';
+    if (n === 1) return '<span class="dcell hot">TOMORROW<br>' + shortDate(t.due) + "</span>";
+    if (n === 2) return '<span class="dcell hot">IN 2 DAYS<br>' + shortDate(t.due) + "</span>";
+    if (n <= 7)  return '<span class="dcell warm">' + shortDate(t.due) + "<br>in " + n + " days</span>";
+    return '<span class="dcell">' + shortDate(t.due) + "</span>";
+  }
+
+  function taskRow(t, o) {
+    o = o || {};
+    let m = "";
+    if (t.category) m += '<span class="chip">' + esc(String(t.category).toUpperCase()) + "</span>";
+    if (t.priority === "Urgent Today") m += '<span class="chip status critical">URGENT</span>';
+    else if (t.priority) m += '<span class="chip">' + esc(String(t.priority).toUpperCase()) + "</span>";
+    if (t.status && t.status !== "Not Started")
+      m += '<span class="chip status ' + (t.status === "Done" ? "good" : t.status === "Waiting on Someone" ? "warning" : "") +
+           '">' + esc(String(t.status).toUpperCase()) + "</span>";
+    (Array.isArray(t.people) ? t.people : []).forEach((p) => { m += '<span class="chip accent">' + esc(p) + "</span>"; });
+    let extra = "";
+    if (o.showQuestion && t.openQuestion) extra += '<div class="qtext">' + esc(t.openQuestion) + "</div>";
+    if (o.showWaiting && t.waitingOn) extra += '<div class="wtext">' + esc(t.waitingOn) + "</div>";
+    const isDone = t.status === "Done";
+    return '<div class="row">' +
+      '<button class="tick' + (isDone ? " on" : "") + '" data-tick="' + esc(t.ref) + '" type="button" aria-label="' +
+      (isDone ? "Mark not started" : "Mark done") + '">' + (isDone ? "&#10003;" : "") + "</button>" +
+      '<button class="rmain" data-edit="' + esc(t.ref) + '" type="button">' +
+      '<span class="rtop"><span class="ref">#' + esc(t.ref) + '</span><span class="title">' +
+      esc(t.task || "(untitled)") + "</span></span>" +
+      (m ? '<span class="meta">' + m + "</span>" : "") + extra + "</button>" +
+      dueCell(t) + "</div>";
+  }
+
+  function meterRow(label, done, total, sub) {
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const cls = pct === 100 ? "good" : pct > 0 ? "" : "warning";
+    return '<div class="meterrow"><div class="meterhead"><span>' + esc(label) + '</span><span class="v">' +
+      done + "/" + total + " &middot; " + pct + '%</span></div><div class="track"><div class="fill ' + cls +
+      '" style="width:' + pct + '%"></div></div>' +
+      (sub ? '<div class="meta"><span class="chip">' + esc(sub) + "</span></div>" : "") + "</div>";
+  }
+
+  function render() {
+    const open = rows.filter((r) => r.status !== "Done");
+    const done = rows.filter((r) => r.status === "Done");
+    /* anything overdue, or due within the next 2 days, counts as Today */
+    const isToday = (r) => r.priority === "Urgent Today" || (r.due && dayDiff(r.due, TODAY) <= 2);
+
+    const todays = open.filter(isToday).sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
+    const week = open.filter((r) => {
+      if (!r.due || isToday(r)) return false;
+      const n = dayDiff(r.due, TODAY); return n > 2 && n <= 7;
+    }).sort((a, b) => a.due.localeCompare(b.due));
+    const waiting = open.filter((r) => (r.waitingOn && String(r.waitingOn).trim()) || r.status === "Waiting on Someone");
+    const questions = open.filter((r) => r.openQuestion && String(r.openQuestion).trim());
+
+    $("s-open").textContent = open.length;
+    $("s-today").textContent = todays.length;
+    $("s-wait").textContent = waiting.length;
+    $("s-q").textContent = questions.length;
+    $("s-done").textContent = done.length;
+
+    $("t-today").textContent = todays.length;
+    $("t-open").textContent = open.length;
+    $("t-blocked").textContent = waiting.length;
+    $("t-ask").textContent = questions.length;
+
+    $("c-today").textContent = todays.length;
+    $("b-today").innerHTML = todays.length
+      ? todays.map((t) => taskRow(t, { showWaiting: true })).join("")
+      : ok("Nothing marked <b>Urgent Today</b>, and nothing due in the next 2 days. This reads the board, not your head &mdash; tap a task to set a priority or date.");
+
+    const undated = open.filter((r) => !r.due).length;
+    $("c-week").textContent = week.length;
+    $("b-week").innerHTML = week.length
+      ? week.map((t) => taskRow(t, {})).join("")
+      : warn("Nothing due 3&ndash;7 days out." + (undated ? " " + undated + " of " + open.length + " open tasks have no date at all, so this panel cannot see them." : ""));
+
+    $("c-wait").textContent = waiting.length;
+    $("b-wait").innerHTML = waiting.length
+      ? waiting.map((t) => taskRow(t, { showWaiting: true })).join("")
+      : ok("Nothing recorded as blocked on another person.");
+
+    $("c-q").textContent = questions.length;
+    $("b-q").innerHTML = questions.length
+      ? questions.map((t) => taskRow(t, { showQuestion: true })).join("")
+      : ok("No unresolved decisions recorded.");
+
+    const byRef = new Map(rows.map((r) => [String(r.ref), r]));
+    const parents = rows.filter((r) => Array.isArray(r.subtasks) && r.subtasks.length > 0);
+    const manual = rows.filter((r) => r.progress != null && !(Array.isArray(r.subtasks) && r.subtasks.length));
+    let big = "";
+    parents.forEach((p) => {
+      const kids = p.subtasks.map((k) => byRef.get(String(k))).filter(Boolean);
+      big += meterRow(p.task, kids.filter((k) => k.status === "Done").length, kids.length,
+        "#" + p.ref + (p.category ? " · " + p.category : ""));
+    });
+    manual.forEach((p) => {
+      const pct = Math.max(0, Math.min(100, Math.round(Number(p.progress))));
+      big += '<div class="meterrow"><div class="meterhead"><span>' + esc(p.task) +
+        '</span><span class="v">' + pct + '%</span></div><div class="track"><div class="fill" style="width:' +
+        pct + '%"></div></div><div class="meta"><span class="chip">SET BY HAND</span></div></div>';
+    });
+    $("c-big").textContent = parents.length + manual.length;
+    $("t-track").textContent = parents.length + manual.length;
+    $("b-big").innerHTML = big || warn("No big thing set up yet. Type a <b>Progress %</b> on any task and a meter appears here.");
+
+    renderAll(open);
+
+    $("foot-store").textContent = "Store: GitHub · " + REPO;
+    $("foot-upd").textContent = "Last saved " + stamp(doc && doc.updated);
+    $("foot-note").textContent = rows.length + " tasks";
+    conn("live", "live");
+  }
+
+  function renderAll(open) {
+    const f = filter.trim().toLowerCase();
+    const list = !f ? open : open.filter((r) =>
+      [r.task, r.category, r.priority, r.status, r.waitingOn, r.openQuestion]
+        .concat(Array.isArray(r.people) ? r.people : []).join(" ").toLowerCase().includes(f));
+    $("c-all").textContent = f ? list.length + " / " + open.length : open.length;
+    $("b-all").innerHTML = list.length
+      ? list.slice().sort((a, b) =>
+          (PRIORITIES.indexOf(a.priority) + 9) % 9 - (PRIORITIES.indexOf(b.priority) + 9) % 9 || a.ref - b.ref)
+        .map((t) => taskRow(t, {})).join("")
+      : (f ? ok("Nothing matches &ldquo;" + esc(filter) + "&rdquo;.") : ok("Nothing open. Everything is done."));
+  }
+
+  const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all"];
+  function pageMessage(html, kind) {
+    PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
+    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-today", "t-open", "t-blocked", "t-ask", "t-track"]
+      .forEach((id) => { $(id).textContent = "–"; });
+  }
+
+  /* ---------- editor ---------- */
+  function segment(host, options, selected, multi) {
+    host.innerHTML = options.map((o) =>
+      '<button type="button" data-v="' + esc(o) + '" aria-pressed="' +
+      (multi ? (selected.includes(o) ? "true" : "false") : (selected === o ? "true" : "false")) +
+      '">' + esc(o) + "</button>").join("");
+    host.onclick = (ev) => {
+      const b = ev.target.closest("button[data-v]"); if (!b) return;
+      if (multi) b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      else {
+        const was = b.getAttribute("aria-pressed") === "true";
+        host.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+        if (!was) b.setAttribute("aria-pressed", "true");
+      }
+    };
+  }
+  const segValue = (h) => { const b = h.querySelector('button[aria-pressed="true"]'); return b ? b.dataset.v : null; };
+  const segValues = (h) => [...h.querySelectorAll('button[aria-pressed="true"]')].map((b) => b.dataset.v);
+  function msg(t, bad) { $("sh-msg").className = "smsg" + (bad ? " bad" : ""); $("sh-msg").innerHTML = t || ""; }
+
+  function openEditor(ref) {
+    if (!hasData) return;
+    const t = ref == null ? null : rows.find((r) => String(r.ref) === String(ref));
+    editing = t || null;
+    $("sh-title").textContent = t ? "Edit #" + t.ref : "New task";
+    $("f-task").value = t ? (t.task || "") : "";
+    segment($("f-status"), STATUSES, t ? t.status : "Not Started", false);
+    segment($("f-priority"), PRIORITIES, t ? t.priority : null, false);
+    segment($("f-category"), CATEGORIES, t ? t.category : null, false);
+    segment($("f-people"), PEOPLE, t && Array.isArray(t.people) ? t.people : [], true);
+    $("f-due").value = t && t.due ? t.due : "";
+    $("f-prog").value = t && t.progress != null ? String(Math.round(Number(t.progress))) : "";
+    $("f-wait").value = t && t.waitingOn ? t.waitingOn : "";
+    $("f-q").value = t && t.openQuestion ? t.openQuestion : "";
+    msg(""); $("sh-save").disabled = false;
+    $("scrim").classList.add("on");
+    setTimeout(() => $("f-task").focus(), 40);
+  }
+  function closeEditor() { $("scrim").classList.remove("on"); editing = null; }
+
+  function formTask() {
+    const due = $("f-due").value, prog = $("f-prog").value.trim();
+    return {
+      task: $("f-task").value.trim(),
+      category: segValue($("f-category")),
+      priority: segValue($("f-priority")),
+      status: segValue($("f-status")) || "Not Started",
+      people: segValues($("f-people")),
+      due: due || null,
+      waitingOn: $("f-wait").value.trim() || null,
+      openQuestion: $("f-q").value.trim() || null,
+      progress: prog === "" ? null : Number(prog),
+      subtasks: []
+    };
+  }
+
+  async function save() {
+    const t = formTask();
+    const errs = validate(t);
+    if (errs.length) { msg(errs.map(esc).join("<br>"), true); return; }
+    $("sh-save").disabled = true; msg("Saving&hellip;");
+    const editedRef = editing ? editing.ref : null;
+    try {
+      if (editedRef != null) {
+        await write((d) => {
+          const i = d.tasks.findIndex((r) => String(r.ref) === String(editedRef));
+          if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+          d.tasks[i] = Object.assign({}, d.tasks[i], t, { ref: d.tasks[i].ref, subtasks: d.tasks[i].subtasks || [] });
+        }, "Update #" + editedRef);
+      } else {
+        await write((d) => {
+          /* never reuse a ref, even if nextRef has drifted behind the real max */
+          const highest = Math.max(0, ...d.tasks.map((r) => Number(r.ref) || 0));
+          const ref = Math.max(Number(d.nextRef) || 0, highest + 1);
+          d.tasks.push(Object.assign({ ref: ref }, t));
+          d.nextRef = ref + 1;
+        }, "Add task");
+      }
+      msg("Saved.");
+      setTimeout(closeEditor, 300);
+    } catch (e) {
+      $("sh-save").disabled = false;
+      conn(hasData ? "live" : "down", hasData ? "live" : "error");
+      if (e && e.status === 401) { closeEditor(); showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { closeEditor(); conflictBanner(); return; }
+      msg(saveError(e) + "<br><br>Nothing was retried automatically &mdash; press Save again to try once more.", true);
+    }
+  }
+
+  function saveError(e) {
+    if (e && e.kind === "offline") return "Could not reach GitHub, so nothing was saved.";
+    if (e && e.kind === "busy") return "Another save is still going. Wait a moment and try again.";
+    if (e && e.kind === "gone") return esc(e.message);
+    if (e && e.status === 403) return "GitHub refused the write (403). The token may be read-only &mdash; it needs <b>Contents: Read and write</b>.";
+    if (e && e.status === 404) return "GitHub cannot find the file to write. The token may have lost access to the repository.";
+    return "GitHub rejected it: " + esc((e && e.message) || "no detail given");
+  }
+
+  async function toggleDone(ref, btn) {
+    const t = rows.find((r) => String(r.ref) === String(ref)); if (!t) return;
+    const next = t.status === "Done" ? "Not Started" : "Done";
+    if (btn) btn.disabled = true;
+    try {
+      await write((d) => {
+        const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+        if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+        d.tasks[i].status = next;
+      }, next === "Done" ? "Tick #" + ref + " done" : "Reopen #" + ref);
+    } catch (e) {
+      if (btn) btn.disabled = false;
+      conn(hasData ? "live" : "down", hasData ? "live" : "error");
+      if (e && e.status === 401) { showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { conflictBanner(); return; }
+      banner("The tick did not go through. " + saveError(e), "", false);
+    }
+  }
+
+  /* ---------- systems panel ---------- */
+  $("b-sys").innerHTML =
+    '<div class="sysrow"><span class="dot live"></span><div><div class="nm">GitHub &mdash; the store</div>' +
+      '<div class="ds">Your tasks live in the private repository <b>' + esc(OWNER) + "/" + esc(REPO) + '</b>, in one file. ' +
+      'Every change here is a commit, so nothing is ever quietly lost.</div></div></div>' +
+    '<div class="sysrow"><span class="dot stale"></span><div><div class="nm">Your token expires</div>' +
+      '<div class="ds">On the date you chose when you made it. On that day this app stops loading and asks for a new token. ' +
+      'Nothing is lost &mdash; make a fresh one and paste it in.</div></div></div>' +
+    '<div class="sysrow"><span class="dot stale"></span><div><div class="nm">Add to home screen</div>' +
+      '<div class="ds">iPhone: Share &rarr; Add to Home Screen. Android: menu &rarr; Add to Home screen. ' +
+      'The token is stored per browser, so you enter it once on each device.</div></div></div>';
+
+  /* ---------- views ---------- */
+  function show(v) {
+    document.querySelectorAll(".view").forEach((s) => s.classList.toggle("on", s.id === "v-" + v));
+    document.querySelectorAll(".tabs button").forEach((b) =>
+      b.setAttribute("aria-selected", b.dataset.view === v ? "true" : "false"));
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }
+  document.querySelector(".tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-view]"); if (b) show(b.dataset.view);
+  });
+
+  document.addEventListener("click", (e) => {
+    const tk = e.target.closest("[data-tick]"); if (tk) { toggleDone(tk.dataset.tick, tk); return; }
+    const ed = e.target.closest("[data-edit]"); if (ed) { openEditor(ed.dataset.edit); return; }
+  });
+  $("new-task").addEventListener("click", () => openEditor(null));
+  $("fab").addEventListener("click", () => openEditor(null));
+  $("sh-close").addEventListener("click", closeEditor);
+  $("sh-cancel").addEventListener("click", closeEditor);
+  $("sh-save").addEventListener("click", save);
+  $("scrim").addEventListener("click", (e) => { if (e.target === $("scrim")) closeEditor(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && $("scrim").classList.contains("on")) closeEditor();
+  });
+  $("filter").addEventListener("input", (e) => {
+    filter = e.target.value;
+    if (hasData) renderAll(rows.filter((r) => r.status !== "Done"));
+  });
+  $("refresh").addEventListener("click", () => { clearBanner(); read(true); });
+
+  /* Read on load, on Refresh, and when the tab comes back into view.
+     No polling — one person does not need it, and it burns rate limit. */
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && token && hasData) read(false);
+  });
+
+  /* ---------- boot ---------- */
+  (function boot() {
+    let saved = null;
+    try { saved = localStorage.getItem(TOKKEY); } catch (e) {}
+    if (!saved) { showGate(""); return; }
+    token = saved;
+    hideGate();
+    read(true);
+  })();
+})();
+</script>
+</body>
+</html>
