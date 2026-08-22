@@ -10,6 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Octopus Prime">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="icon" type="image/png" sizes="256x256" href="blossom.png">
+<link rel="apple-touch-icon" href="blossom.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
@@ -346,7 +349,8 @@ body::before{
 .gate-nav{display:flex;align-items:center;padding:18px 20px;flex:none}
 @media (min-width:768px){.gate-nav{padding:26px 44px}}
 .gate-logo{display:flex;align-items:center;gap:10px;color:#fff}
-.gate-logo svg{width:26px;height:26px;flex:none;filter:drop-shadow(0 0 10px rgba(0,228,239,.7))}
+.gate-logo img{width:30px;height:30px;flex:none;display:block;
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
 .gate-logo .wm{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:15px;
   letter-spacing:.22em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,228,239,.45)}
 .gate-main{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 20px 32px}
@@ -374,8 +378,9 @@ body::before{
   background:rgba(255,255,255,.055);
   -webkit-backdrop-filter:blur(24px) saturate(130%);backdrop-filter:blur(24px) saturate(130%);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.16),0 44px 96px -34px rgba(0,0,0,.9)}
-.gate-mark{display:flex;justify-content:center;margin-bottom:15px}
-.gate-mark svg{width:40px;height:40px;filter:drop-shadow(0 0 15px rgba(0,228,239,.7))}
+.gate-mark{display:flex;justify-content:center;margin-bottom:16px}
+.gate-mark img{width:74px;height:74px;display:block;
+  filter:drop-shadow(0 8px 20px rgba(0,0,0,.6))}
 .gatebox h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:19px;
   letter-spacing:.2em;text-transform:uppercase;margin:0 0 24px;color:#fff;
   text-shadow:0 0 26px rgba(0,228,239,.4)}
@@ -457,14 +462,7 @@ body::before{
   <div class="gate-inner">
     <header class="gate-nav">
       <div class="gate-logo bfu" style="animation-delay:0ms">
-        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <circle cx="16" cy="16" r="14" stroke="#00E4EF" stroke-width="1.2" opacity=".35"/>
-          <path d="M16 2a14 14 0 0 1 14 14" stroke="#00E4EF" stroke-width="1.6"/>
-          <path d="M16 30A14 14 0 0 1 2 16" stroke="#00E4EF" stroke-width="1.6"/>
-          <circle cx="16" cy="16" r="6.5" stroke="#00E4EF" stroke-width="1.2" opacity=".7"/>
-          <circle cx="16" cy="16" r="2.2" fill="#00E4EF"/>
-          <path d="M16 0v6M16 26v6M0 16h6M26 16h6" stroke="#00E4EF" stroke-width="1.2" opacity=".6"/>
-        </svg>
+        <img src="blossom.png" alt="" width="256" height="256">
         <span class="wm">Octopus Prime</span>
       </div>
     </header>
@@ -472,13 +470,7 @@ body::before{
     <main class="gate-main">
       <div class="gatebox lg">
         <div class="gate-mark bfu" style="animation-delay:150ms">
-          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <circle cx="16" cy="16" r="14" stroke="#00E4EF" stroke-width="1.2" opacity=".35"/>
-            <path d="M16 2a14 14 0 0 1 14 14" stroke="#00E4EF" stroke-width="1.6"/>
-            <path d="M16 30A14 14 0 0 1 2 16" stroke="#00E4EF" stroke-width="1.6"/>
-            <circle cx="16" cy="16" r="6.5" stroke="#00E4EF" stroke-width="1.2" opacity=".7"/>
-            <circle cx="16" cy="16" r="2.2" fill="#00E4EF"/>
-          </svg>
+          <img src="blossom.png" alt="Octopus Prime" width="256" height="256">
         </div>
         <h1 id="gate-h" class="bfu" style="animation-delay:250ms">Octopus Prime</h1>
         <input class="gate-field bfu" style="animation-delay:350ms" type="password" id="gate-tok"
