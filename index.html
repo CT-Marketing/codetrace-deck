@@ -12,7 +12,7 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
 
 <style>
 :root{
@@ -22,6 +22,11 @@
   --accent:#00E4EF; --accent-dim:#0E7A85; --accent-ghost:rgba(0,228,239,.10);
   --critical:#FF6B6B; --warning:#FFB020; --good:#4ADE80; --question:#B18BFF;
   --sp:clamp(12px,3vw,22px); --gap:14px; --barh:60px;
+  --chamfer:14px;
+  --glass:rgba(11,19,28,.62);
+  --glass-lit:rgba(14,25,34,.72);
+  /* the chamfered outline every framed surface shares */
+  --cut:polygon(var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer));
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -30,8 +35,39 @@ body{
   font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:15px;line-height:1.5;overflow-x:hidden;
   background-image:
-    radial-gradient(1200px 600px at 50% -10%,rgba(0,228,239,.07),transparent 70%),
+    radial-gradient(1200px 600px at 50% -10%,rgba(0,228,239,.09),transparent 70%),
+    radial-gradient(700px 400px at 12% 105%,rgba(0,228,239,.05),transparent 70%),
     repeating-linear-gradient(to bottom,rgba(0,228,239,.022) 0 1px,transparent 1px 3px);
+}
+
+/* Drifting grid. Fixed pseudo-element moved with transform rather than an
+   animated background-position, so the phone composites it on the GPU
+   instead of repainting the whole page 60 times a second. */
+body::before{
+  content:"";position:fixed;inset:-60px;z-index:-2;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,228,239,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,228,239,.05) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+@media (prefers-reduced-motion:no-preference){
+  body::before{animation:drift 60s linear infinite}
+  @keyframes drift{to{transform:translate3d(52px,52px,0)}}
+}
+
+/* ---- shared HUD frame: chamfered corner + 1px glowing edge ----
+   The edge is a gradient masked down to a ring, so it can glow along
+   its length instead of being a flat 1px border. */
+.rail,.panel,.gatebox,.feed,.tabs{position:relative;clip-path:var(--cut)}
+.rail::before,.panel::before,.gatebox::before,.feed::before,.tabs::before{
+  content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
+  clip-path:var(--cut);pointer-events:none;z-index:2;
+  background:linear-gradient(155deg,
+    rgba(0,228,239,.65) 0%, rgba(0,228,239,.18) 22%,
+    rgba(0,228,239,.07) 50%, rgba(0,228,239,.20) 78%, rgba(0,228,239,.60) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;
 }
 .wrap{max-width:1500px;margin:0 auto;padding:var(--sp) var(--sp) 28px}
 @media (max-width:899px){
@@ -39,17 +75,35 @@ body{
 }
 
 /* rail */
-.rail{border:1px solid var(--edge);background:linear-gradient(180deg,var(--panel-2),var(--panel));
-  padding:13px 15px;display:flex;flex-wrap:wrap;align-items:center;gap:11px 18px;position:relative}
-.rail::before,.rail::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--accent);opacity:.7}
-.rail::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
-.rail::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.rail{border:0;background:linear-gradient(180deg,var(--glass-lit),var(--glass));
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  padding:13px 15px;display:flex;flex-wrap:wrap;align-items:center;gap:11px 18px;
+  box-shadow:0 0 34px -14px rgba(0,228,239,.45)}
+/* tick ruler down the trailing edge of the rail */
+.rail::after{content:"";position:absolute;right:0;top:0;bottom:0;width:26px;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(0,228,239,.30) 0 1px,transparent 1px 7px);
+  -webkit-mask:linear-gradient(90deg,transparent,#fff);mask:linear-gradient(90deg,transparent,#fff);opacity:.5}
 .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
 .brand h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:clamp(16px,3.4vw,21px);
   letter-spacing:.14em;text-transform:uppercase;margin:0;white-space:nowrap}
 .brand .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em;white-space:nowrap}
-.clock{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px;line-height:1.25}
-.clock .t{font-size:19px;font-weight:700;color:var(--accent)}
+.clock{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;display:flex;
+  flex-direction:column;gap:2px;line-height:1.25;position:relative;isolation:isolate}
+/* JARVIS reticle: two counter-rotating rings sitting behind the clock,
+   in space the rail already wastes. Costs no room from the task list. */
+.clock::before,.clock::after{content:"";position:absolute;left:50%;top:50%;border-radius:50%;
+  pointer-events:none;z-index:-1}
+.clock::before{width:54px;height:54px;margin:-27px 0 0 -27px;
+  border:1px solid rgba(0,228,239,.13);border-top-color:rgba(0,228,239,.55);
+  border-left-color:rgba(0,228,239,.28)}
+.clock::after{width:36px;height:36px;margin:-18px 0 0 -18px;
+  border:1px dashed rgba(0,228,239,.22)}
+@media (prefers-reduced-motion:no-preference){
+  .clock::before{animation:spin 14s linear infinite}
+  .clock::after{animation:spin 9s linear infinite reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+}
+.clock .t{font-size:19px;font-weight:700;color:var(--accent);text-shadow:0 0 14px rgba(0,228,239,.5)}
 .clock .d{font-size:11px;color:var(--ink-3);letter-spacing:.08em}
 .btn{font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
   color:var(--ink-2);border:1px solid var(--edge);padding:9px 13px;background:transparent;cursor:pointer;
@@ -83,17 +137,26 @@ body{
 .banner .bt b{color:var(--ink);font-weight:600}
 .banner .ba{display:flex;gap:8px;flex-wrap:wrap;flex:none}
 
-/* stats */
-.feed{display:grid;gap:1px;background:var(--edge-soft);border:1px solid var(--edge);border-top:0;
-  grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
-.stat{background:var(--panel);padding:11px 12px;display:flex;flex-direction:column;gap:3px}
-.stat .n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;font-size:23px;font-weight:700;line-height:1}
+/* stats — its own chamfered plate, separated from the rail so the two
+   cut corners read as stacked instruments rather than a broken edge */
+.feed{display:grid;gap:1px;background:rgba(0,228,239,.10);border:0;margin-top:9px;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
+  box-shadow:0 0 30px -16px rgba(0,228,239,.5)}
+.stat{background:var(--glass);padding:11px 12px;display:flex;flex-direction:column;gap:3px}
+/* Silkscreen for the counters only. Per-glyph fallback keeps the "–"
+   placeholder in JetBrains Mono, which Silkscreen has no glyph for. */
+.stat .n{font-family:"Silkscreen","JetBrains Mono",monospace;font-weight:400;
+  font-variant-numeric:tabular-nums;font-size:21px;line-height:1.1;letter-spacing:-.02em;
+  text-shadow:0 0 16px currentColor}
 .stat .l{font-family:"Chakra Petch",sans-serif;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
 .is-critical{color:var(--critical)} .is-warning{color:var(--warning)}
 .is-good{color:var(--good)} .is-question{color:var(--question)} .is-accent{color:var(--accent)}
 
 /* tab bar */
-.tabs{display:flex;background:var(--panel);border:1px solid var(--edge);border-top:0}
+.tabs{display:flex;background:var(--glass);border:0;margin-top:9px;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 0 30px -16px rgba(0,228,239,.5)}
 .tabs button{
   flex:1;min-width:0;background:transparent;border:0;border-right:1px solid var(--edge-soft);
   padding:12px 6px 11px;cursor:pointer;color:var(--ink-3);display:flex;flex-direction:column;
@@ -108,8 +171,12 @@ body{
 .tabs button[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent)}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 @media (max-width:899px){
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;border:0;border-top:1px solid var(--edge);
-    padding-bottom:env(safe-area-inset-bottom);background:var(--panel-2)}
+  /* edge-to-edge on phone, so no chamfer and no ring — just a lit top rail */
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;margin-top:0;clip-path:none;
+    border-top:1px solid rgba(0,228,239,.30);
+    padding-bottom:env(safe-area-inset-bottom);background:var(--glass-lit);
+    box-shadow:0 -10px 34px -14px rgba(0,228,239,.55)}
+  .tabs::before{display:none}
   .tabs button[aria-selected=true]::after{top:auto;bottom:auto;top:0}
 }
 
@@ -118,16 +185,23 @@ body{
 .view.on{display:grid;gap:var(--gap);grid-template-columns:1fr}
 @media (min-width:900px){.view.on.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-.panel{border:1px solid var(--edge);background:var(--panel);display:flex;flex-direction:column;min-width:0;position:relative}
-.panel::after{content:"";position:absolute;top:-1px;right:-1px;width:14px;height:14px;
-  border-top:1px solid var(--accent-dim);border-right:1px solid var(--accent-dim);pointer-events:none}
-.phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--edge-soft);
-  background:linear-gradient(90deg,var(--accent-ghost),transparent 60%)}
+/* No backdrop blur here on purpose: these panels hold the long scrolling
+   lists, and compositing a blur under a scroll is what makes a phone stutter.
+   They get the frame and the glow; the fixed chrome gets the glass. */
+.panel{border:0;background:var(--glass);display:flex;flex-direction:column;min-width:0;
+  box-shadow:0 0 36px -18px rgba(0,228,239,.55)}
+/* reticle bracket, top-right */
+.panel::after{content:"";position:absolute;top:9px;right:9px;width:11px;height:11px;
+  border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:.55;pointer-events:none;z-index:2}
+.phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(0,228,239,.16);
+  background:linear-gradient(90deg,rgba(0,228,239,.14),transparent 62%),
+    repeating-linear-gradient(to right,rgba(0,228,239,.05) 0 1px,transparent 1px 6px)}
 .phead h2{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;font-weight:600;
   letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
 .phead .count{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;
   font-variant-numeric:tabular-nums;color:var(--ink-3)}
-.pbody{padding:4px 0;flex:1;min-height:66px}
+/* bottom padding keeps the last row clear of the bottom-right chamfer */
+.pbody{padding:4px 0 12px;flex:1;min-height:66px}
 
 .filterbar{padding:10px 14px;border-bottom:1px solid var(--edge-soft)}
 .filterbar input{width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
@@ -199,7 +273,8 @@ body{
 .fab{position:fixed;right:16px;bottom:calc(var(--barh) + 16px + env(safe-area-inset-bottom));z-index:31;
   width:54px;height:54px;border-radius:50%;border:1px solid var(--accent-dim);background:#0A2A31;
   color:var(--accent);font-size:26px;line-height:1;cursor:pointer;display:none;
-  align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.5)}
+  align-items:center;justify-content:center;
+  box-shadow:0 6px 22px rgba(0,0,0,.5),0 0 0 4px rgba(0,228,239,.10),0 0 26px -4px rgba(0,228,239,.55)}
 .fab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:899px){body.ready .fab{display:flex}}
 
@@ -207,9 +282,14 @@ body{
 .scrim{position:fixed;inset:0;background:rgba(2,6,10,.8);display:none;z-index:40;align-items:flex-end;justify-content:center}
 .scrim.on{display:flex}
 @media (min-width:720px){.scrim.on{align-items:center;padding:24px}}
-.sheet{background:var(--panel);border:1px solid var(--edge);width:100%;max-width:620px;
+/* No chamfer on the sheet: it scrolls internally and carries a sticky
+   header, and clip-path on a scroll container makes sticky unreliable. */
+.sheet{background:var(--glass-lit);border:1px solid rgba(0,228,239,.22);width:100%;max-width:620px;
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  box-shadow:0 0 70px -18px rgba(0,228,239,.5);
   max-height:92vh;overflow-y:auto;padding:0 0 calc(18px + env(safe-area-inset-bottom))}
-.shead{position:sticky;top:0;background:var(--panel-2);border-bottom:1px solid var(--edge);
+.shead{position:sticky;top:0;background:var(--glass-lit);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,228,239,.22);
   padding:13px 15px;display:flex;align-items:center;gap:12px;z-index:1}
 .shead h3{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
 .shead .x{margin-left:auto}
@@ -240,10 +320,11 @@ body{
   display:flex;align-items:center;justify-content:center;padding:24px 16px;
   background-image:radial-gradient(1000px 500px at 50% -10%,rgba(0,228,239,.08),transparent 70%)}
 .gate.hidden{display:none}
-.gatebox{width:100%;max-width:460px;border:1px solid var(--edge);background:var(--panel);position:relative}
-.gatebox::before,.gatebox::after{content:"";position:absolute;width:12px;height:12px;border:1px solid var(--accent);opacity:.7}
-.gatebox::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
-.gatebox::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.gatebox{width:100%;max-width:460px;border:0;background:var(--glass-lit);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 0 60px -20px rgba(0,228,239,.6)}
+.gatebox::after{content:"";position:absolute;top:11px;right:11px;width:11px;height:11px;
+  border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:.55;pointer-events:none;z-index:2}
 .gatehead{padding:20px 20px 0}
 .gatehead h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:20px;
   letter-spacing:.14em;text-transform:uppercase;margin:0}
@@ -258,6 +339,34 @@ body{
 .gatemsg{padding:12px 20px 0;font-size:13px;color:var(--critical);min-height:0}
 .gateact{padding:16px 20px 22px}
 .gateact .btn{width:100%}
+
+/* ---------- HUD polish ---------- */
+.btn.primary{box-shadow:0 0 22px -6px rgba(0,228,239,.55),inset 0 0 18px -8px rgba(0,228,239,.7)}
+.btn:hover,.btn:focus-visible{box-shadow:0 0 18px -6px rgba(0,228,239,.5)}
+.chip.accent{box-shadow:0 0 14px -6px rgba(0,228,239,.8)}
+.tabs button[aria-selected=true]{box-shadow:inset 0 14px 26px -18px rgba(0,228,239,.9)}
+.tabs button[aria-selected=true]::after{box-shadow:0 0 12px rgba(0,228,239,.9)}
+.dcell.hot{text-shadow:0 0 12px rgba(255,107,107,.55)}
+.brand h1{text-shadow:0 0 18px rgba(0,228,239,.35)}
+.fill{box-shadow:0 0 12px -2px rgba(0,228,239,.7)}
+.fill.good{box-shadow:0 0 12px -2px rgba(74,222,128,.7)}
+.fill.warning{box-shadow:0 0 12px -2px rgba(255,176,32,.7)}
+.foot{border-top:1px solid rgba(0,228,239,.14)}
+
+/* ---------- entrance ----------
+   Runs once per browser session only. Refreshes and tab switches render
+   instantly, because checking what is due should never wait on a flourish. */
+@keyframes rise{
+  from{opacity:0;transform:translateY(10px);filter:blur(6px)}
+  to{opacity:1;transform:none;filter:none}
+}
+@media (prefers-reduced-motion:no-preference){
+  body.intro .rail{animation:rise .34s ease-out backwards}
+  body.intro .feed{animation:rise .34s ease-out .04s backwards}
+  body.intro .tabs{animation:rise .34s ease-out .08s backwards}
+  body.intro .view.on .panel{animation:rise .34s ease-out .12s backwards}
+  body.intro .view.on .panel:nth-child(2){animation-delay:.16s}
+}
 </style>
 </head>
 <body>
@@ -1006,6 +1115,18 @@ body{
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && token && hasData) read(false);
   });
+
+  /* ---------- entrance, once per session ----------
+     sessionStorage, not localStorage: you get the flourish when you first
+     open the deck and never again until you close the browser. */
+  (function intro() {
+    let seen = null;
+    try { seen = sessionStorage.getItem("codetrace.deck.intro"); } catch (e) {}
+    if (seen) return;
+    try { sessionStorage.setItem("codetrace.deck.intro", "1"); } catch (e) {}
+    document.body.classList.add("intro");
+    setTimeout(() => document.body.classList.remove("intro"), 900);
+  })();
 
   /* ---------- boot ---------- */
   (function boot() {
