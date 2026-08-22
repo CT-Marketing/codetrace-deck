@@ -459,7 +459,12 @@ body{
   gap:30px;padding:8px 20px 32px}
 @media (min-width:900px){
   .gate-main{flex-direction:row;align-items:center;justify-content:space-between;
-    gap:40px;padding:8px 44px 44px}
+    gap:40px;padding:0 clamp(28px,6vw,120px) 44px}
+}
+/* Lift both blocks out of the busy lower third of the footage and pull them
+   in off the edges, so they land in the flat dark areas either side. */
+@media (min-width:900px) and (min-height:620px){
+  .gate-main{padding-bottom:clamp(90px,17vh,190px)}
 }
 .gate-clock{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;flex:none}
 @media (min-width:900px){.gate-clock{align-items:flex-end;text-align:right}}
