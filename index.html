@@ -15,19 +15,27 @@
 <link rel="apple-touch-icon" href="blossom.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
 <style>
+/* Light palette. Every value below was contrast-checked against the cream
+   ground before use — the previous version failed on readability and that
+   is the thing this rebuild exists to fix.
+     ink   on cream 17.9:1     ink-2 8.1:1     ink-3 5.1:1
+     critical 5.7   warning 5.4   good 5.0   question 7.7
+   Neon is 1.19:1 on cream, so it is NEVER text or a thin line here — only
+   a filled shape carrying dark type (neon on ink is 15:1). */
 :root{
-  --ground:#05090E; --panel:#0B131C; --panel-2:#0E1922;
-  --edge:#183440; --edge-soft:#112531;
-  --ink:#DDEEF4; --ink-2:#8AAAB9; --ink-3:#4E6B7A;
-  --accent:#00E4EF; --accent-dim:#0E7A85; --accent-ghost:rgba(0,228,239,.10);
-  --critical:#FF6B6B; --warning:#FFB020; --good:#4ADE80; --question:#B18BFF;
+  --ground:#EFF4FF; --panel:#FFFFFF; --panel-2:#F7F9FF;
+  --edge:#C9D4EA; --edge-soft:#E3E9F6;
+  --ink:#010828; --ink-2:#3C4A66; --ink-3:#5A6884;
+  --accent:#010828; --accent-dim:#5A6884; --accent-ghost:rgba(1,8,40,.05);
+  --neon:#6FFF00;
+  --critical:#C4001F; --warning:#8A5A00; --good:#0F7A2E; --question:#5B21C7;
   --sp:clamp(12px,3vw,22px); --gap:14px; --barh:60px;
   --chamfer:14px;
-  --glass:rgba(9,16,24,.74);
-  --glass-lit:rgba(12,22,31,.82);
+  --glass:#FFFFFF;
+  --glass-lit:#F7F9FF;
   /* the chamfered outline every framed surface shares */
   --cut:polygon(var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer));
 }
@@ -37,41 +45,13 @@ body{
   margin:0;background:var(--ground);color:var(--ink);
   font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:15px;line-height:1.5;overflow-x:hidden;
-  background-image:
-    radial-gradient(1200px 600px at 50% -10%,rgba(0,228,239,.09),transparent 70%),
-    radial-gradient(700px 400px at 12% 105%,rgba(0,228,239,.05),transparent 70%),
-    repeating-linear-gradient(to bottom,rgba(0,228,239,.022) 0 1px,transparent 1px 3px);
+  -webkit-font-smoothing:antialiased;
 }
 
-/* ---- dashboard backdrop stack, back to front ----
-   -4 video · -3 scrim · -2 grid · content
-   Same video URL as the sign-in screen, so it is already in the browser
-   cache by the time you get here: no second download. */
-.bgvid{position:fixed;inset:0;z-index:-4;width:100%;height:100%;object-fit:cover;
-  opacity:.72;filter:blur(1px) saturate(120%);pointer-events:none}
-body.novid .bgvid{display:none}
-/* Light scrim only. Readability comes from the panels' own dark glass, not
-   from drowning the footage — an earlier version stacked 38% video under an
-   86% scrim, which left about 5% of the video actually visible. */
-body::after{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
-  background:
-    radial-gradient(130% 100% at 50% 0%,rgba(5,9,14,.10),rgba(5,9,14,.46) 72%),
-    linear-gradient(180deg,rgba(5,9,14,.22),rgba(5,9,14,.42))}
-
-/* Drifting grid. Fixed pseudo-element moved with transform rather than an
-   animated background-position, so the phone composites it on the GPU
-   instead of repainting the whole page 60 times a second. */
-body::before{
-  content:"";position:fixed;inset:-60px;z-index:-2;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(0,228,239,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,228,239,.05) 1px,transparent 1px);
-  background-size:52px 52px;
-}
-@media (prefers-reduced-motion:no-preference){
-  body::before{animation:drift 60s linear infinite}
-  @keyframes drift{to{transform:translate3d(52px,52px,0)}}
-}
+/* No video and no moving grid behind the deck. Motion under small type is
+   what made the last version hard to read; the login keeps the cinematic
+   treatment because there is almost no text on it. */
+@keyframes drift{to{transform:translate3d(52px,52px,0)}}
 
 /* ---- shared HUD frame: chamfered corner + 1px glowing edge ----
    The edge is a gradient masked down to a ring, so it can glow along
@@ -81,8 +61,8 @@ body::before{
   content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
   clip-path:var(--cut);pointer-events:none;z-index:2;
   background:linear-gradient(155deg,
-    rgba(0,228,239,.65) 0%, rgba(0,228,239,.18) 22%,
-    rgba(0,228,239,.07) 50%, rgba(0,228,239,.20) 78%, rgba(0,228,239,.60) 100%);
+    rgba(1,8,40,.65) 0%, rgba(1,8,40,.18) 22%,
+    rgba(1,8,40,.07) 50%, rgba(1,8,40,.20) 78%, rgba(1,8,40,.60) 100%);
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   mask-composite:exclude;
@@ -96,13 +76,13 @@ body::before{
 .rail{border:0;background:linear-gradient(180deg,var(--glass-lit),var(--glass));
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   padding:13px 15px;display:flex;flex-wrap:wrap;align-items:center;gap:11px 18px;
-  box-shadow:0 0 34px -14px rgba(0,228,239,.45)}
+  box-shadow:0 0 34px -14px rgba(1,8,40,.45)}
 /* tick ruler down the trailing edge of the rail */
 .rail::after{content:"";position:absolute;right:0;top:0;bottom:0;width:26px;pointer-events:none;
-  background:repeating-linear-gradient(to bottom,rgba(0,228,239,.30) 0 1px,transparent 1px 7px);
+  background:repeating-linear-gradient(to bottom,rgba(1,8,40,.30) 0 1px,transparent 1px 7px);
   -webkit-mask:linear-gradient(90deg,transparent,#fff);mask:linear-gradient(90deg,transparent,#fff);opacity:.5}
 .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
-.brand h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:clamp(16px,3.4vw,21px);
+.brand h1{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:clamp(16px,3.4vw,21px);
   letter-spacing:.14em;text-transform:uppercase;margin:0;white-space:nowrap}
 .brand .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em;white-space:nowrap}
 .clock{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;display:flex;
@@ -112,18 +92,18 @@ body::before{
 .clock::before,.clock::after{content:"";position:absolute;left:50%;top:50%;border-radius:50%;
   pointer-events:none;z-index:-1}
 .clock::before{width:54px;height:54px;margin:-27px 0 0 -27px;
-  border:1px solid rgba(0,228,239,.13);border-top-color:rgba(0,228,239,.55);
-  border-left-color:rgba(0,228,239,.28)}
+  border:1px solid rgba(1,8,40,.13);border-top-color:rgba(1,8,40,.55);
+  border-left-color:rgba(1,8,40,.28)}
 .clock::after{width:36px;height:36px;margin:-18px 0 0 -18px;
-  border:1px dashed rgba(0,228,239,.22)}
+  border:1px dashed rgba(1,8,40,.22)}
 @media (prefers-reduced-motion:no-preference){
   .clock::before{animation:spin 14s linear infinite}
   .clock::after{animation:spin 9s linear infinite reverse}
   @keyframes spin{to{transform:rotate(360deg)}}
 }
-.clock .t{font-size:19px;font-weight:700;color:var(--accent);text-shadow:0 0 14px rgba(0,228,239,.5)}
+.clock .t{font-size:19px;font-weight:700;color:var(--accent)}
 .clock .d{font-size:11px;color:var(--ink-3);letter-spacing:.08em}
-.btn{font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+.btn{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
   color:var(--ink-2);border:1px solid var(--edge);padding:9px 13px;background:transparent;cursor:pointer;
   transition:border-color .15s,color .15s;min-height:38px;text-decoration:none;display:inline-flex;
   align-items:center;justify-content:center}
@@ -157,28 +137,27 @@ body::before{
 
 /* stats — its own chamfered plate, separated from the rail so the two
    cut corners read as stacked instruments rather than a broken edge */
-.feed{display:grid;gap:1px;background:rgba(0,228,239,.10);border:0;margin-top:9px;
+.feed{display:grid;gap:1px;background:rgba(1,8,40,.10);border:0;margin-top:9px;
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
-  box-shadow:0 0 30px -16px rgba(0,228,239,.5)}
+  box-shadow:0 0 30px -16px rgba(1,8,40,.5)}
 .stat{background:var(--glass);padding:11px 12px;display:flex;flex-direction:column;gap:3px}
-/* Silkscreen for the counters only. Per-glyph fallback keeps the "–"
-   placeholder in JetBrains Mono, which Silkscreen has no glyph for. */
-.stat .n{font-family:"Silkscreen","JetBrains Mono",monospace;font-weight:400;
-  font-variant-numeric:tabular-nums;font-size:21px;line-height:1.1;letter-spacing:-.02em;
-  text-shadow:0 0 16px currentColor}
-.stat .l{font-family:"Chakra Petch",sans-serif;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+/* Anton for the big counters — condensed display weight, and it carries
+   size well without needing any glow to feel deliberate. */
+.stat .n{font-family:"Anton",sans-serif;font-weight:400;
+  font-variant-numeric:tabular-nums;font-size:21px;line-height:1.1;letter-spacing:-.02em}
+.stat .l{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
 .is-critical{color:var(--critical)} .is-warning{color:var(--warning)}
 .is-good{color:var(--good)} .is-question{color:var(--question)} .is-accent{color:var(--accent)}
 
 /* tab bar */
 .tabs{display:flex;background:var(--glass);border:0;margin-top:9px;
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-  box-shadow:0 0 30px -16px rgba(0,228,239,.5)}
+  box-shadow:0 0 30px -16px rgba(1,8,40,.5)}
 .tabs button{
   flex:1;min-width:0;background:transparent;border:0;border-right:1px solid var(--edge-soft);
   padding:12px 6px 11px;cursor:pointer;color:var(--ink-3);display:flex;flex-direction:column;
-  align-items:center;gap:4px;font-family:"Chakra Petch",sans-serif;font-size:10.5px;
+  align-items:center;gap:4px;font-family:"JetBrains Mono",monospace;font-size:10.5px;
   letter-spacing:.13em;text-transform:uppercase;position:relative;min-height:var(--barh)
 }
 .tabs button:last-child{border-right:0}
@@ -191,9 +170,9 @@ body::before{
 @media (max-width:899px){
   /* edge-to-edge on phone, so no chamfer and no ring — just a lit top rail */
   .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;margin-top:0;clip-path:none;
-    border-top:1px solid rgba(0,228,239,.30);
+    border-top:1px solid rgba(1,8,40,.30);
     padding-bottom:env(safe-area-inset-bottom);background:var(--glass-lit);
-    box-shadow:0 -10px 34px -14px rgba(0,228,239,.55)}
+    box-shadow:0 -10px 34px -14px rgba(1,8,40,.55)}
   .tabs::before{display:none}
   .tabs button[aria-selected=true]::after{top:auto;bottom:auto;top:0}
 }
@@ -207,14 +186,14 @@ body::before{
    lists, and compositing a blur under a scroll is what makes a phone stutter.
    They get the frame and the glow; the fixed chrome gets the glass. */
 .panel{border:0;background:var(--glass);display:flex;flex-direction:column;min-width:0;
-  box-shadow:0 0 36px -18px rgba(0,228,239,.55)}
+  box-shadow:0 0 36px -18px rgba(1,8,40,.55)}
 /* reticle bracket, top-right */
 .panel::after{content:"";position:absolute;top:9px;right:9px;width:11px;height:11px;
   border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:.55;pointer-events:none;z-index:2}
-.phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(0,228,239,.16);
-  background:linear-gradient(90deg,rgba(0,228,239,.14),transparent 62%),
-    repeating-linear-gradient(to right,rgba(0,228,239,.05) 0 1px,transparent 1px 6px)}
-.phead h2{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;font-weight:600;
+.phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(1,8,40,.16);
+  background:linear-gradient(90deg,rgba(1,8,40,.14),transparent 62%),
+    repeating-linear-gradient(to right,rgba(1,8,40,.05) 0 1px,transparent 1px 6px)}
+.phead h2{margin:0;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;
   letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
 .phead .count{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;
   font-variant-numeric:tabular-nums;color:var(--ink-3)}
@@ -273,12 +252,12 @@ body::before{
 /* Tilted orbital planes. A circle rotated on X reads as a ring lying flat in
    space — this is what stops the cluster looking like a flat dial. */
 .orbit{position:absolute;border-radius:50%;pointer-events:none;
-  border:1px dashed rgba(0,228,239,.30);
-  box-shadow:0 0 34px rgba(0,228,239,.14) inset}
+  border:1px dashed rgba(1,8,40,.30);
+  box-shadow:0 0 34px rgba(1,8,40,.14) inset}
 .orbit.o1{inset:-14px;transform:rotateX(74deg)}
-.orbit.o2{inset:-44px;transform:rotateX(78deg);border-color:rgba(0,228,239,.17)}
+.orbit.o2{inset:-44px;transform:rotateX(78deg);border-color:rgba(1,8,40,.17)}
 .orbit.o3{inset:6px;transform:rotateX(66deg) rotateY(16deg);border-style:solid;
-  border-color:rgba(0,228,239,.13)}
+  border-color:rgba(1,8,40,.13)}
 @media (prefers-reduced-motion:no-preference){
   .orbit.o1{animation:orb1 22s linear infinite}
   .orbit.o2{animation:orb2 34s linear infinite}
@@ -288,16 +267,16 @@ body::before{
 
 /* radar sweep */
 .sweep{position:absolute;inset:16px;border-radius:50%;pointer-events:none;
-  background:conic-gradient(from 0deg,rgba(0,228,239,0) 0deg,rgba(0,228,239,.20) 42deg,rgba(0,228,239,0) 72deg);
+  background:conic-gradient(from 0deg,rgba(1,8,40,0) 0deg,rgba(1,8,40,.20) 42deg,rgba(1,8,40,0) 72deg);
   -webkit-mask:radial-gradient(circle,transparent 33%,#000 35%,#000 76%,transparent 78%);
   mask:radial-gradient(circle,transparent 33%,#000 35%,#000 76%,transparent 78%)}
 @media (prefers-reduced-motion:no-preference){.sweep{animation:spin 6.5s linear infinite}}
 
 /* fake volume in the middle so the dial has a lit face */
 .core::before{content:"";position:absolute;inset:24%;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle at 36% 30%,rgba(0,228,239,.20),rgba(0,228,239,.04) 55%,transparent 72%)}
-.corering{filter:drop-shadow(0 0 14px rgba(0,228,239,.35))}
-#core-day{color:var(--accent);filter:drop-shadow(0 0 8px rgba(0,228,239,.9))}
+  background:radial-gradient(circle at 36% 30%,rgba(1,8,40,.20),rgba(1,8,40,.04) 55%,transparent 72%)}
+.corering{filter:drop-shadow(0 0 14px rgba(1,8,40,.35))}
+#core-day{color:var(--accent);filter:drop-shadow(0 0 8px rgba(1,8,40,.9))}
 .corespin{color:var(--accent);opacity:.85}
 @media (prefers-reduced-motion:no-preference){
   .corespin{animation:spin 26s linear infinite}
@@ -306,10 +285,9 @@ body::before{
 .coretxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:5px;text-align:center;pointer-events:none}
 .coretxt .ct{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;
-  font-size:44px;font-weight:700;line-height:1;color:var(--accent);
-  text-shadow:0 0 26px rgba(0,228,239,.65)}
+  font-size:44px;font-weight:700;line-height:1;color:var(--accent)}
 @media (max-width:420px){.coretxt .ct{font-size:36px}}
-.coretxt .cd{font-family:"Chakra Petch",sans-serif;font-size:11px;letter-spacing:.22em;color:var(--ink-2)}
+.coretxt .cd{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;color:var(--ink-2)}
 .coretxt .cp{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-3)}
 
 /* the gauge cluster */
@@ -322,21 +300,21 @@ body::before{
 .ring-good{color:var(--good)} .ring-critical{color:var(--critical)}
 .ring-warning{color:var(--warning)} .ring-question{color:var(--question)}
 .ring-accent{color:var(--accent)}
-.ringfill{filter:drop-shadow(0 0 7px currentColor);transition:stroke-dashoffset .5s ease}
+.ringfill{transition:stroke-dashoffset .5s ease}
 .gaugeval{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:1px;pointer-events:none}
 .gaugeval .v{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;
   font-size:23px;font-weight:700;line-height:1;color:currentColor}
 .gaugeval .s{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--ink-3);letter-spacing:.06em}
-.gaugelbl{font-family:"Chakra Petch",sans-serif;font-size:9.5px;letter-spacing:.17em;
+.gaugelbl{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.17em;
   text-transform:uppercase;color:var(--ink-3);text-align:center}
 
 /* real readouts along the bottom — the small edge panels from the reference,
    except every number here actually means something */
-.hudstrip{display:grid;gap:1px;background:rgba(0,228,239,.10);
-  grid-template-columns:repeat(auto-fit,minmax(122px,1fr));border-top:1px solid rgba(0,228,239,.14)}
+.hudstrip{display:grid;gap:1px;background:rgba(1,8,40,.10);
+  grid-template-columns:repeat(auto-fit,minmax(122px,1fr));border-top:1px solid rgba(1,8,40,.14)}
 .hudcell{background:var(--glass);padding:10px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.hudcell .k{font-family:"Chakra Petch",sans-serif;font-size:9px;letter-spacing:.17em;
+.hudcell .k{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.17em;
   text-transform:uppercase;color:var(--ink-3)}
 .hudcell .v{font-family:"JetBrains Mono",monospace;font-size:13px;font-variant-numeric:tabular-nums;
   color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -349,7 +327,7 @@ body::before{
 .miniring .gaugering{width:74px;height:74px}
 .miniring .gaugeval .v{font-size:16px}
 .miniring .gaugeval .s{font-size:8px}
-.miniring .nm{font-family:"Chakra Petch",sans-serif;font-size:8.5px;letter-spacing:.11em;
+.miniring .nm{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--ink-3);text-align:center;line-height:1.35;overflow-wrap:anywhere}
 .ring-dim{color:#3E5C6B}
 
@@ -380,7 +358,7 @@ body::before{
 .sysrow{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--edge-soft)}
 .sysrow:last-child{border-bottom:0}
 .sysrow .dot{margin-top:6px}
-.sysrow .nm{font-family:"Chakra Petch",sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;color:var(--ink-2)}
+.sysrow .nm{font-family:"JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;color:var(--ink-2)}
 .sysrow .ds{font-size:13px;color:var(--ink-3);margin-top:3px;overflow-wrap:anywhere}
 
 .foot{margin-top:20px;padding-top:13px;border-top:1px solid var(--edge-soft);
@@ -396,7 +374,7 @@ body::before{
   width:54px;height:54px;border-radius:50%;border:1px solid var(--accent-dim);background:#0A2A31;
   color:var(--accent);font-size:26px;line-height:1;cursor:pointer;display:none;
   align-items:center;justify-content:center;
-  box-shadow:0 6px 22px rgba(0,0,0,.5),0 0 0 4px rgba(0,228,239,.10),0 0 26px -4px rgba(0,228,239,.55)}
+  box-shadow:0 6px 22px rgba(0,0,0,.5),0 0 0 4px rgba(1,8,40,.10),0 0 26px -4px rgba(1,8,40,.55)}
 .fab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:899px){body.ready .fab{display:flex}}
 
@@ -406,17 +384,17 @@ body::before{
 @media (min-width:720px){.scrim.on{align-items:center;padding:24px}}
 /* No chamfer on the sheet: it scrolls internally and carries a sticky
    header, and clip-path on a scroll container makes sticky unreliable. */
-.sheet{background:var(--glass-lit);border:1px solid rgba(0,228,239,.22);width:100%;max-width:620px;
+.sheet{background:var(--glass-lit);border:1px solid rgba(1,8,40,.22);width:100%;max-width:620px;
   -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-  box-shadow:0 0 70px -18px rgba(0,228,239,.5);
+  box-shadow:0 0 70px -18px rgba(1,8,40,.5);
   max-height:92vh;overflow-y:auto;padding:0 0 calc(18px + env(safe-area-inset-bottom))}
 .shead{position:sticky;top:0;background:var(--glass-lit);
-  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,228,239,.22);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid rgba(1,8,40,.22);
   padding:13px 15px;display:flex;align-items:center;gap:12px;z-index:1}
-.shead h3{margin:0;font-family:"Chakra Petch",sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
+.shead h3{margin:0;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
 .shead .x{margin-left:auto}
 .fld{padding:12px 15px 0}
-.fld label{display:block;font-family:"Chakra Petch",sans-serif;font-size:10px;letter-spacing:.16em;
+.fld label{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
 .fld input[type=text],.fld input[type=date],.fld input[type=number],.fld input[type=password],.fld textarea{
   width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
@@ -445,13 +423,13 @@ body::before{
    this instead of a black rectangle. */
 .gate-fallback{position:absolute;inset:0;z-index:0;overflow:hidden;
   background:
-    radial-gradient(900px 620px at 50% 18%,rgba(0,228,239,.17),transparent 70%),
-    radial-gradient(700px 500px at 12% 100%,rgba(0,228,239,.10),transparent 70%),
+    radial-gradient(900px 620px at 50% 18%,rgba(1,8,40,.17),transparent 70%),
+    radial-gradient(700px 500px at 12% 100%,rgba(1,8,40,.10),transparent 70%),
     linear-gradient(180deg,#04080C 0%,#000 100%)}
 .gate-fallback::after{content:"";position:absolute;inset:-70px;
   background-image:
-    linear-gradient(rgba(0,228,239,.06) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,228,239,.06) 1px,transparent 1px);
+    linear-gradient(rgba(1,8,40,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(1,8,40,.06) 1px,transparent 1px);
   background-size:64px 64px}
 @media (prefers-reduced-motion:no-preference){
   .gate-fallback::after{animation:drift 60s linear infinite}
@@ -470,8 +448,8 @@ body::before{
 .gate-logo{display:flex;align-items:center;gap:10px;color:#fff}
 .gate-logo img{width:30px;height:30px;flex:none;display:block;
   filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
-.gate-logo .wm{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:15px;
-  letter-spacing:.22em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,228,239,.45)}
+.gate-logo .wm{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;
+  letter-spacing:.22em;text-transform:uppercase}
 .gate-main{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 20px 32px}
 .gate-foot{flex:none;padding:0 20px 22px;text-align:center;
   font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.09em;
@@ -500,16 +478,15 @@ body::before{
 .gate-mark{display:flex;justify-content:center;margin-bottom:16px}
 .gate-mark img{width:74px;height:74px;display:block;
   filter:drop-shadow(0 8px 20px rgba(0,0,0,.6))}
-.gatebox h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:19px;
-  letter-spacing:.2em;text-transform:uppercase;margin:0 0 24px;color:#fff;
-  text-shadow:0 0 26px rgba(0,228,239,.4)}
+.gatebox h1{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:19px;
+  letter-spacing:.2em;text-transform:uppercase;margin:0 0 24px;color:#fff}
 .gate-field{width:100%;border-radius:999px;border:0;padding:14px 20px;min-height:50px;
   background:rgba(255,255,255,.07);color:#fff;text-align:center;
   font-family:"IBM Plex Sans",sans-serif;font-size:16px;outline:none;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.13)}
 .gate-field::placeholder{color:rgba(255,255,255,.40);letter-spacing:.04em}
-.gate-field:focus{box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 0 0 1px rgba(0,228,239,.6),
-  0 0 26px -6px rgba(0,228,239,.55)}
+.gate-field:focus{box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 0 0 1px rgba(1,8,40,.6),
+  0 0 26px -6px rgba(1,8,40,.55)}
 .gatemsg{padding:11px 6px 0;font-size:12.5px;color:var(--critical);min-height:0}
 .gateact{padding-top:10px}
 .gateact .btn{width:100%;border-radius:999px;min-height:50px;color:#fff;letter-spacing:.18em;
@@ -544,17 +521,17 @@ body::before{
 }
 
 /* ---------- HUD polish ---------- */
-.btn.primary{box-shadow:0 0 22px -6px rgba(0,228,239,.55),inset 0 0 18px -8px rgba(0,228,239,.7)}
-.btn:hover,.btn:focus-visible{box-shadow:0 0 18px -6px rgba(0,228,239,.5)}
-.chip.accent{box-shadow:0 0 14px -6px rgba(0,228,239,.8)}
-.tabs button[aria-selected=true]{box-shadow:inset 0 14px 26px -18px rgba(0,228,239,.9)}
-.tabs button[aria-selected=true]::after{box-shadow:0 0 12px rgba(0,228,239,.9)}
-.dcell.hot{text-shadow:0 0 12px rgba(255,107,107,.55)}
-.brand h1{text-shadow:0 0 18px rgba(0,228,239,.35)}
-.fill{box-shadow:0 0 12px -2px rgba(0,228,239,.7)}
+.btn.primary{box-shadow:0 0 22px -6px rgba(1,8,40,.55),inset 0 0 18px -8px rgba(1,8,40,.7)}
+.btn:hover,.btn:focus-visible{box-shadow:0 0 18px -6px rgba(1,8,40,.5)}
+.chip.accent{box-shadow:0 0 14px -6px rgba(1,8,40,.8)}
+.tabs button[aria-selected=true]{box-shadow:inset 0 14px 26px -18px rgba(1,8,40,.9)}
+.tabs button[aria-selected=true]::after{box-shadow:0 0 12px rgba(1,8,40,.9)}
+.dcell.hot{}
+.brand h1{}
+.fill{box-shadow:0 0 12px -2px rgba(1,8,40,.7)}
 .fill.good{box-shadow:0 0 12px -2px rgba(74,222,128,.7)}
 .fill.warning{box-shadow:0 0 12px -2px rgba(255,176,32,.7)}
-.foot{border-top:1px solid rgba(0,228,239,.14)}
+.foot{border-top:1px solid rgba(1,8,40,.14)}
 
 /* ---------- entrance ----------
    Runs once per browser session only. Refreshes and tab switches render
@@ -563,6 +540,96 @@ body::before{
   from{opacity:0;transform:translateY(10px);filter:blur(6px)}
   to{opacity:1;transform:none;filter:none}
 }
+/* ============ LIGHT THEME ============
+   Flat, high-contrast, no glow. Neon appears only as a filled block with
+   near-black type on it — as a line or as text on cream it is 1.19:1 and
+   effectively invisible. */
+
+/* display type */
+.brand h1,.phead h2,.coretxt .ct,.gaugeval .v,.stat .n{font-family:"Anton",sans-serif;font-weight:400}
+.brand h1{letter-spacing:.06em;font-size:clamp(18px,3.6vw,24px)}
+.phead h2{letter-spacing:.08em;font-size:13px}
+.stat .n{letter-spacing:.01em;font-size:26px}
+
+/* surfaces: solid, bordered, no blur */
+.rail,.feed,.tabs,.panel,.stat,.sheet,.shead{-webkit-backdrop-filter:none;backdrop-filter:none}
+.rail{background:var(--panel);box-shadow:0 1px 2px rgba(1,8,40,.06)}
+.rail::after{display:none}
+.feed{background:var(--edge-soft);box-shadow:0 1px 2px rgba(1,8,40,.06)}
+.stat{background:var(--panel)}
+.tabs{background:var(--panel);box-shadow:0 1px 2px rgba(1,8,40,.06)}
+.panel{background:var(--panel);box-shadow:0 1px 2px rgba(1,8,40,.06)}
+.panel::after{display:none}
+.phead{background:var(--panel-2);border-bottom:1px solid var(--edge)}
+.rail::before,.panel::before,.feed::before,.tabs::before{
+  background:rgba(1,8,40,.16)}
+
+/* neon lives here: the selected tab, the primary button, the add button */
+.tabs button[aria-selected=true]{background:var(--neon);color:var(--ink);box-shadow:none}
+.tabs button[aria-selected=true] .bnum{color:var(--ink)}
+.tabs button[aria-selected=true]::after{background:var(--ink);box-shadow:none}
+.btn.primary{background:var(--neon);border-color:var(--ink);color:var(--ink);box-shadow:none;font-weight:700}
+.btn.primary:hover,.btn.primary:focus-visible{background:#7FFF1A;color:var(--ink)}
+.btn{color:var(--ink-2);border-color:var(--edge);box-shadow:none}
+.btn:hover,.btn:focus-visible{border-color:var(--ink);color:var(--ink);box-shadow:none}
+.fab{background:var(--neon);border-color:var(--ink);color:var(--ink);
+  box-shadow:0 4px 14px rgba(1,8,40,.25)}
+
+/* rows */
+.row{border-bottom:1px solid var(--edge-soft)}
+.title{color:var(--ink)}
+.tick{border-color:var(--ink-3)}
+.tick.on{background:var(--good);border-color:var(--good);color:#fff}
+.chip{border-color:var(--edge);color:var(--ink-2);background:var(--panel-2)}
+.chip.accent{color:var(--ink);border-color:var(--ink-3)}
+.skel{background:linear-gradient(90deg,var(--edge-soft),var(--panel-2),var(--edge-soft))}
+
+/* the clock core is the one dark object on the page — it is where the neon
+   becomes readable (15:1) instead of invisible */
+.core{color:var(--neon)}
+.core::before{inset:4%;border-radius:50%;z-index:0;
+  background:radial-gradient(circle at 36% 28%,#13224C,#010828 72%);
+  box-shadow:0 10px 30px rgba(1,8,40,.28)}
+.core svg,.sweep{z-index:1}
+.coretxt{z-index:2}
+.corering{filter:none}
+#core-day{filter:none}
+.coretxt .ct{color:var(--neon);font-size:46px;letter-spacing:.01em}
+.coretxt .cd{color:#C9D6F5} .coretxt .cp{color:#8FA3CE}
+.orbit{border-color:rgba(1,8,40,.22);box-shadow:none}
+.orbit.o2{border-color:rgba(1,8,40,.13)}
+.sweep{background:conic-gradient(from 0deg,rgba(111,255,0,0) 0deg,rgba(111,255,0,.30) 42deg,rgba(111,255,0,0) 72deg)}
+
+/* rings: flat colour on a light track, no glow */
+.ringfill{filter:none}
+.gaugering svg circle:first-of-type,.gaugering svg circle{stroke-opacity:1}
+.ring-accent{color:var(--ink)} .ring-dim{color:#9AA8C4}
+.gaugeval .v{color:var(--ink)}
+.gaugeval .s,.gaugelbl,.miniring .nm{color:var(--ink-3)}
+.hudstrip{background:var(--edge);border-top:1px solid var(--edge)}
+.hudcell{background:var(--panel)}
+.hudcell .v{color:var(--ink)}
+.hudcell .v.dim{color:var(--ink-3)}
+.bigring .nm{color:var(--ink-2)}
+
+/* notes, editor, banner */
+.empty{color:var(--ink-2)}
+.empty b{color:var(--ink)}
+.empty code{background:var(--panel-2);border-color:var(--edge);color:var(--ink)}
+.sheet{background:var(--panel);border-color:var(--edge);box-shadow:0 20px 60px rgba(1,8,40,.28)}
+.shead{background:var(--panel-2);border-bottom-color:var(--edge)}
+.fld input,.fld textarea,.filterbar input{background:var(--panel);border-color:var(--edge);color:var(--ink)}
+.seg button{border-color:var(--edge);color:var(--ink-2)}
+.seg button[aria-pressed=true]{background:var(--neon);border-color:var(--ink);color:var(--ink);font-weight:700}
+.scrim{background:rgba(1,8,40,.45)}
+.banner{background:#FFF1F2;border-color:var(--critical)}
+.banner.warn{background:#FFF8E6;border-color:var(--warning)}
+.banner .bt{color:var(--ink-2)} .banner .bt b{color:var(--ink)}
+.sysrow .ds{color:var(--ink-3)}
+.foot{border-top-color:var(--edge);color:var(--ink-3)}
+.dot{background:var(--ink-3)}
+.dot.live{background:var(--good)} .dot.stale{background:var(--warning)} .dot.down{background:var(--critical)}
+
 @media (prefers-reduced-motion:no-preference){
   body.intro .rail{animation:rise .34s ease-out backwards}
   body.intro .feed{animation:rise .34s ease-out .04s backwards}
@@ -579,7 +646,7 @@ body::before{
   <div class="gate-fallback"></div>
   <!-- src is attached by script only while this screen is visible: see startGateVideo -->
   <video class="gate-vid" id="gate-vid" loop muted playsinline preload="none"
-         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_151551_992053d1-3d3e-4b8c-abac-45f22158f411.mp4"></video>
   <div class="gate-blur"></div>
 
   <div class="gate-inner">
@@ -616,10 +683,6 @@ body::before{
 </div>
 
 <!-- ---------------- app ---------------- -->
-<!-- the deck's own video, separate from the sign-in one -->
-<video class="bgvid" id="bg-vid" loop muted playsinline preload="none"
-       data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"></video>
-
 <div class="wrap">
 
   <header class="rail">
@@ -628,7 +691,6 @@ body::before{
     <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
     <button class="btn primary" id="new-task" type="button">+ New task</button>
     <button class="btn" id="refresh" type="button">Refresh</button>
-    <button class="btn" id="fx" type="button" aria-pressed="true">Video: On</button>
     <button class="btn danger" id="signout" type="button">Sign out</button>
   </header>
 
@@ -886,7 +948,6 @@ body::before{
     $("gate-msg").innerHTML = message || "";
     $("gate").classList.remove("hidden");
     $("gate-tok").value = "";
-    stopBgVideo();
     startGateVideo();
     setTimeout(() => $("gate-tok").focus(), 60);
   }
@@ -894,7 +955,6 @@ body::before{
     $("gate").classList.add("hidden");
     document.body.classList.add("ready");
     stopGateVideo();
-    startBgVideo();
   }
 
   async function tryToken(t) {
@@ -1594,38 +1654,6 @@ body::before{
     try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {}
   }
 
-  /* ---------- dashboard background video ----------
-     A different file from the sign-in screen, so it is its own ~14 MB
-     download the first time you reach the deck on a device. CloudFront
-     serves it immutable for a year, so that happens once, not per visit.
-     Attached only once the gate is down, and dropped again on sign-out. */
-  const FXKEY = "codetrace.deck.novid";
-  function fxOff() { try { return localStorage.getItem(FXKEY) === "1"; } catch (e) { return false; } }
-  function startBgVideo() {
-    const v = $("bg-vid");
-    if (!v || fxOff() || !v.dataset.src) return;
-    if (!v.getAttribute("src")) { v.muted = true; v.src = v.dataset.src; }
-    const p = v.play && v.play(); if (p && p.catch) p.catch(() => {});
-  }
-  function stopBgVideo() {
-    const v = $("bg-vid"); if (!v) return;
-    try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {}
-  }
-  function applyFx() {
-    const off = fxOff();
-    document.body.classList.toggle("novid", off);
-    const b = $("fx");
-    /* state, not a command — "Video off" alone reads as a button that turns
-       it off, which is exactly backwards from what it means */
-    if (b) { b.textContent = off ? "Video: Off" : "Video: On"; b.setAttribute("aria-pressed", off ? "false" : "true"); }
-  }
-  $("fx").addEventListener("click", () => {
-    const wasOff = fxOff();
-    try { wasOff ? localStorage.removeItem(FXKEY) : localStorage.setItem(FXKEY, "1"); } catch (e) {}
-    applyFx();
-    if (wasOff) startBgVideo(); else stopBgVideo();
-  });
-  applyFx();
 
   /* Drop the blur-fade-up class once it has finished so nothing is left
      sitting on its own rasterised layer. */
