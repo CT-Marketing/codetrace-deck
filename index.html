@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Command Deck</title>
+<title>Octopus Prime</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05090E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Command Deck">
+<meta name="apple-mobile-web-app-title" content="Octopus Prime">
 <meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -313,32 +313,90 @@ body::before{
 .srow{display:flex;gap:10px;flex-wrap:wrap}
 .srow>*{flex:1;min-width:150px}
 
-/* token gate */
-/* Shown by default and hidden by script, so a signed-out visitor never
+/* ---------- sign-in: cinematic gate ----------
+   Shown by default and hidden by script, so a signed-out visitor never
    sees a flash of the dashboard shell before the gate paints. */
-.gate{position:fixed;inset:0;z-index:60;background:var(--ground);overflow-y:auto;
-  display:flex;align-items:center;justify-content:center;padding:24px 16px;
-  background-image:radial-gradient(1000px 500px at 50% -10%,rgba(0,228,239,.08),transparent 70%)}
+.gate{position:fixed;inset:0;z-index:60;display:flex;overflow:hidden;background:#000}
 .gate.hidden{display:none}
-.gatebox{width:100%;max-width:460px;border:0;background:var(--glass-lit);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  box-shadow:0 0 60px -20px rgba(0,228,239,.6)}
+
+/* Always painted, sits under the video. If the video URL ever dies you get
+   this instead of a black rectangle. */
+.gate-fallback{position:absolute;inset:0;z-index:0;overflow:hidden;
+  background:
+    radial-gradient(900px 620px at 50% 18%,rgba(0,228,239,.17),transparent 70%),
+    radial-gradient(700px 500px at 12% 100%,rgba(0,228,239,.10),transparent 70%),
+    linear-gradient(180deg,#04080C 0%,#000 100%)}
+.gate-fallback::after{content:"";position:absolute;inset:-70px;
+  background-image:
+    linear-gradient(rgba(0,228,239,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,228,239,.06) 1px,transparent 1px);
+  background-size:64px 64px}
+@media (prefers-reduced-motion:no-preference){
+  .gate-fallback::after{animation:drift 60s linear infinite}
+}
+.gate-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;border:0}
+/* blur only at the bottom, fading out by mid-screen — no dark gradient */
+.gate-blur{position:absolute;inset:0;z-index:2;pointer-events:none;
+  -webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);
+  -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 45%);
+  mask-image:linear-gradient(to top,#000 0%,transparent 45%)}
+
+.gate-inner{position:relative;z-index:10;display:flex;flex-direction:column;
+  width:100%;height:100%;overflow-y:auto}
+.gate-nav{display:flex;align-items:center;padding:18px 20px;flex:none}
+@media (min-width:768px){.gate-nav{padding:26px 44px}}
+.gate-logo{display:flex;align-items:center;gap:10px;color:#fff}
+.gate-logo svg{width:26px;height:26px;flex:none;filter:drop-shadow(0 0 10px rgba(0,228,239,.7))}
+.gate-logo .wm{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:15px;
+  letter-spacing:.22em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,228,239,.45)}
+.gate-main{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 20px 32px}
+.gate-foot{flex:none;padding:0 20px 22px;text-align:center;
+  font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.09em;
+  color:rgba(255,255,255,.42)}
+@media (min-width:768px){.gate-foot{padding:0 44px 26px}}
+
+/* liquid glass — from the brief, used on the button */
+.lg{position:relative;overflow:hidden;border:0;
+  background:rgba(255,255,255,.02);background-blend-mode:luminosity;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.10)}
+.lg::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.15) 20%,
+    rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.15) 80%,rgba(255,255,255,.45) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude}
+
+.gatebox{width:100%;max-width:436px;border:0;background:rgba(6,12,18,.70);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  box-shadow:0 34px 90px -34px rgba(0,0,0,.95),0 0 76px -26px rgba(0,228,239,.55)}
 .gatebox::after{content:"";position:absolute;top:11px;right:11px;width:11px;height:11px;
   border-top:1px solid var(--accent);border-right:1px solid var(--accent);opacity:.55;pointer-events:none;z-index:2}
-.gatehead{padding:20px 20px 0}
-.gatehead h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:20px;
-  letter-spacing:.14em;text-transform:uppercase;margin:0}
-.gatehead .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.1em}
-.gatebody{padding:16px 20px 0;font-size:14px;color:var(--ink-2)}
+.gatehead{padding:24px 22px 0}
+.gatehead h1{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:23px;
+  letter-spacing:.14em;text-transform:uppercase;margin:0;color:#fff;
+  text-shadow:0 0 26px rgba(0,228,239,.4)}
+.gatehead .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--accent);letter-spacing:.22em}
+.gatebody{padding:16px 22px 0;font-size:13.5px;color:var(--ink-2)}
 .gatebody p{margin:0 0 11px}
 .gatebody a{color:var(--accent)}
-.gatebody ul{margin:0 0 11px;padding-left:19px}
-.gatebody li{margin-bottom:4px}
-.gatebody code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--panel-2);
-  border:1px solid var(--edge);padding:1px 5px;color:var(--ink)}
-.gatemsg{padding:12px 20px 0;font-size:13px;color:var(--critical);min-height:0}
-.gateact{padding:16px 20px 22px}
-.gateact .btn{width:100%}
+.gatebody code{font-family:"JetBrains Mono",monospace;font-size:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(0,228,239,.2);padding:1px 5px;color:var(--ink)}
+.gatemsg{padding:12px 22px 0;font-size:13px;color:var(--critical);min-height:0}
+.gateact{padding:16px 22px 24px}
+.gateact .btn{width:100%;border-radius:999px;min-height:46px;color:#fff;
+  letter-spacing:.16em;background:rgba(255,255,255,.02)}
+.gateact .btn:hover,.gateact .btn:focus-visible{color:#fff;opacity:.9}
+
+/* blur-fade-up, per the brief. Delays are set inline per element. */
+@keyframes blurFadeUp{
+  from{opacity:0;filter:blur(20px);transform:translateY(40px)}
+  to{opacity:1;filter:blur(0);transform:translateY(0)}
+}
+.bfu{opacity:0;animation:blurFadeUp 1s ease-out forwards}
+@media (prefers-reduced-motion:reduce){
+  .bfu{opacity:1;animation:none}
+}
 
 /* ---------- HUD polish ---------- */
 .btn.primary{box-shadow:0 0 22px -6px rgba(0,228,239,.55),inset 0 0 18px -8px rgba(0,228,239,.7)}
@@ -373,30 +431,58 @@ body::before{
 
 <!-- ---------------- token gate ---------------- -->
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h">
-  <div class="gatebox">
-    <div class="gatehead">
-      <h1 id="gate-h">Command Deck</h1>
-      <span class="sub">SIGN IN</span>
-    </div>
-    <div class="gatebody">
-      <p>This page is an empty shell. Your tasks live in a private GitHub repository, and it needs a
-         <b>personal access token</b> to read them.</p>
-      <p>The token stays in this browser only. It is never sent anywhere except GitHub, and it is not
-         part of this page.</p>
-      <p>If you do not have one yet, make a
-         <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> with:</p>
-      <ul>
-        <li>Repository access: <b>Only select repositories</b> &rarr; <code>codetrace-deck-data</code></li>
-        <li>Permissions &rarr; Repository permissions &rarr; <b>Contents: Read and write</b></li>
-      </ul>
-      <div class="fld" style="padding:4px 0 0">
-        <label for="gate-tok">Token</label>
-        <input type="password" id="gate-tok" autocomplete="current-password" spellcheck="false"
-               placeholder="Paste the token here" aria-describedby="gate-msg">
+  <div class="gate-fallback"></div>
+  <video class="gate-vid" id="gate-vid" autoplay loop muted playsinline
+         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+  <div class="gate-blur"></div>
+
+  <div class="gate-inner">
+    <header class="gate-nav">
+      <div class="gate-logo bfu" style="animation-delay:0ms">
+        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="14" stroke="#00E4EF" stroke-width="1.2" opacity=".35"/>
+          <path d="M16 2a14 14 0 0 1 14 14" stroke="#00E4EF" stroke-width="1.6"/>
+          <path d="M16 30A14 14 0 0 1 2 16" stroke="#00E4EF" stroke-width="1.6"/>
+          <circle cx="16" cy="16" r="6.5" stroke="#00E4EF" stroke-width="1.2" opacity=".7"/>
+          <circle cx="16" cy="16" r="2.2" fill="#00E4EF"/>
+          <path d="M16 0v6M16 26v6M0 16h6M26 16h6" stroke="#00E4EF" stroke-width="1.2" opacity=".6"/>
+        </svg>
+        <span class="wm">Octopus Prime</span>
       </div>
-    </div>
-    <div class="gatemsg" id="gate-msg" role="status" aria-live="polite"></div>
-    <div class="gateact"><button class="btn primary" id="gate-go" type="button">Connect</button></div>
+    </header>
+
+    <main class="gate-main">
+      <div class="gatebox">
+        <div class="gatehead bfu" style="animation-delay:150ms">
+          <h1 id="gate-h">Octopus Prime</h1>
+          <span class="sub">ACCESS</span>
+        </div>
+        <div class="gatebody">
+          <p class="bfu" style="animation-delay:250ms">Your tasks live in a private GitHub repository.
+             This page holds none of them &mdash; it needs your <b>access key</b> to read them.</p>
+          <p class="bfu" style="animation-delay:250ms">The key stays in this browser. It goes nowhere
+             except GitHub, and it is not part of this page.</p>
+          <div class="fld bfu" style="padding:4px 0 0;animation-delay:350ms">
+            <label for="gate-tok">Access key</label>
+            <input type="password" id="gate-tok" autocomplete="current-password" spellcheck="false"
+                   placeholder="Paste your key" aria-describedby="gate-msg">
+          </div>
+          <p class="bfu" style="animation-delay:450ms;margin-top:11px;font-size:12.5px;color:var(--ink-3)">
+            No key yet? Make a
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
+            scoped to <code>codetrace-deck-data</code> with <b>Contents: Read and write</b>.
+          </p>
+        </div>
+        <div class="gatemsg" id="gate-msg" role="status" aria-live="polite"></div>
+        <div class="gateact bfu" style="animation-delay:550ms">
+          <button class="btn lg" id="gate-go" type="button">Connect</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="gate-foot bfu" style="animation-delay:700ms">
+      OCTOPUS PRIME &middot; CODETRACE &mdash; THE KEY IS THE ONLY LOCK. THERE IS NO PASSWORD.
+    </footer>
   </div>
 </div>
 
@@ -404,7 +490,7 @@ body::before{
 <div class="wrap">
 
   <header class="rail">
-    <div class="brand"><h1>Command Deck</h1><span class="sub">CODETRACE</span></div>
+    <div class="brand"><h1>Octopus Prime</h1><span class="sub">CODETRACE</span></div>
     <div class="clock"><span class="t" id="clock-t">--:--</span><span class="d" id="clock-d">&nbsp;</span></div>
     <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
     <button class="btn primary" id="new-task" type="button">+ New task</button>
@@ -619,23 +705,23 @@ body::before{
     }
   }
   function gateError(e) {
-    if (e && e.status === 401) return "GitHub rejected that token. Check you pasted all of it, and that it has not expired.";
-    if (e && e.status === 404) return "The token works, but it cannot see <code>" + esc(REPO) + "</code>. " +
+    if (e && e.status === 401) return "GitHub rejected that key. Check you pasted all of it, and that it has not expired.";
+    if (e && e.status === 404) return "The key works, but it cannot see <code>" + esc(REPO) + "</code>. " +
       "Check it is scoped to that repository and has <b>Contents: Read and write</b>.";
     if (e && e.status === 403) return "GitHub refused the request (403). Usually a missing <b>Contents</b> permission, or a rate limit.";
     if (e && e.kind === "offline") return "Could not reach GitHub. Check your connection and try again.";
-    if (e && e.kind === "badjson") return "The token worked, but <code>" + esc(PATH) + "</code> is not valid JSON.";
+    if (e && e.kind === "badjson") return "The key worked, but <code>" + esc(PATH) + "</code> is not valid JSON.";
     return "Could not connect: " + esc((e && e.message) || "unknown error");
   }
   $("gate-go").addEventListener("click", () => {
     const t = $("gate-tok").value.trim();
-    if (!t) { $("gate-msg").textContent = "Paste the token first."; return; }
+    if (!t) { $("gate-msg").textContent = "Paste your key first."; return; }
     tryToken(t);
   });
   $("gate-tok").addEventListener("keydown", (e) => { if (e.key === "Enter") $("gate-go").click(); });
   $("signout").addEventListener("click", () => {
     doc = null; rows = []; sha = null; hasData = false;
-    showGate("Signed out. The token has been removed from this browser.");
+    showGate("Signed out. Your key has been removed from this browser.");
   });
 
   /* ---------- GitHub contents API ---------- */
@@ -741,7 +827,7 @@ body::before{
   }
 
   function handleReadError(e) {
-    if (e && e.status === 401) { showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+    if (e && e.status === 401) { showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
     conn("down", "error");
     if (e && e.kind === "offline") {
       if (hasData) banner("Could not reach GitHub. You are looking at the copy loaded at " +
@@ -750,8 +836,8 @@ body::before{
       return;
     }
     if (e && e.status === 404) {
-      pageMessage("The token is valid but cannot see <code>" + esc(OWNER) + "/" + esc(REPO) + "</code>. " +
-        "It needs that repository selected, with <b>Contents: Read and write</b>. Sign out and paste a corrected token.", "err");
+      pageMessage("Your key is valid but cannot see <code>" + esc(OWNER) + "/" + esc(REPO) + "</code>. " +
+        "It needs that repository selected, with <b>Contents: Read and write</b>. Sign out and paste a corrected key.", "err");
       return;
     }
     if (e && e.status === 403) {
@@ -1034,7 +1120,7 @@ body::before{
     } catch (e) {
       $("sh-save").disabled = false;
       conn(hasData ? "live" : "down", hasData ? "live" : "error");
-      if (e && e.status === 401) { closeEditor(); showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (e && e.status === 401) { closeEditor(); showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
       if (isConflict(e)) { closeEditor(); conflictBanner(); return; }
       msg(saveError(e) + "<br><br>Nothing was retried automatically &mdash; press Save again to try once more.", true);
     }
@@ -1044,8 +1130,8 @@ body::before{
     if (e && e.kind === "offline") return "Could not reach GitHub, so nothing was saved.";
     if (e && e.kind === "busy") return "Another save is still going. Wait a moment and try again.";
     if (e && e.kind === "gone") return esc(e.message);
-    if (e && e.status === 403) return "GitHub refused the write (403). The token may be read-only &mdash; it needs <b>Contents: Read and write</b>.";
-    if (e && e.status === 404) return "GitHub cannot find the file to write. The token may have lost access to the repository.";
+    if (e && e.status === 403) return "GitHub refused the write (403). Your key may be read-only &mdash; it needs <b>Contents: Read and write</b>.";
+    if (e && e.status === 404) return "GitHub cannot find the file to write. Your key may have lost access to the repository.";
     return "GitHub rejected it: " + esc((e && e.message) || "no detail given");
   }
 
@@ -1062,7 +1148,7 @@ body::before{
     } catch (e) {
       if (btn) btn.disabled = false;
       conn(hasData ? "live" : "down", hasData ? "live" : "error");
-      if (e && e.status === 401) { showGate("That token no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (e && e.status === 401) { showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
       if (isConflict(e)) { conflictBanner(); return; }
       banner("The tick did not go through. " + saveError(e), "", false);
     }
@@ -1073,12 +1159,12 @@ body::before{
     '<div class="sysrow"><span class="dot live"></span><div><div class="nm">GitHub &mdash; the store</div>' +
       '<div class="ds">Your tasks live in the private repository <b>' + esc(OWNER) + "/" + esc(REPO) + '</b>, in one file. ' +
       'Every change here is a commit, so nothing is ever quietly lost.</div></div></div>' +
-    '<div class="sysrow"><span class="dot stale"></span><div><div class="nm">Your token expires</div>' +
-      '<div class="ds">On the date you chose when you made it. On that day this app stops loading and asks for a new token. ' +
+    '<div class="sysrow"><span class="dot stale"></span><div><div class="nm">Your key expires</div>' +
+      '<div class="ds">On the date you chose when you made it. On that day this app stops loading and asks for a new key. ' +
       'Nothing is lost &mdash; make a fresh one and paste it in.</div></div></div>' +
     '<div class="sysrow"><span class="dot stale"></span><div><div class="nm">Add to home screen</div>' +
       '<div class="ds">iPhone: Share &rarr; Add to Home Screen. Android: menu &rarr; Add to Home screen. ' +
-      'The token is stored per browser, so you enter it once on each device.</div></div></div>';
+      'Your key is stored per browser, so you enter it once on each device.</div></div></div>';
 
   /* ---------- views ---------- */
   function show(v) {
@@ -1115,6 +1201,20 @@ body::before{
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && token && hasData) read(false);
   });
+
+  /* ---------- sign-in video ----------
+     It is hosted on someone else's CDN, so assume it can vanish. If it fails
+     to load or is blocked, drop it and let the CSS backdrop show through
+     rather than leaving a black rectangle. */
+  (function gateVideo() {
+    const v = $("gate-vid"); if (!v) return;
+    const drop = () => { v.style.display = "none"; };
+    v.addEventListener("error", drop, true);
+    v.addEventListener("stalled", () => { if (!v.videoWidth) drop(); });
+    setTimeout(() => { if (!v.videoWidth) drop(); }, 8000);
+    const p = v.play && v.play();
+    if (p && p.catch) p.catch(() => {});   /* autoplay refusal is not fatal */
+  })();
 
   /* ---------- entrance, once per session ----------
      sessionStorage, not localStorage: you get the flourish when you first
