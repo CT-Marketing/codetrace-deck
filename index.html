@@ -240,6 +240,72 @@ body::before{
 .qtext{margin-top:8px;padding-left:11px;border-left:2px solid var(--question);color:var(--ink-2);font-size:13.5px;overflow-wrap:anywhere}
 .wtext{margin-top:8px;padding-left:11px;border-left:2px solid var(--warning);color:var(--ink-2);font-size:13.5px;overflow-wrap:anywhere}
 
+/* ---------- command view: the circular HUD ---------- */
+.duo{display:grid;gap:var(--gap);grid-template-columns:1fr}
+@media (min-width:900px){.duo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.hudwrap{display:flex;flex-direction:column;align-items:center;gap:26px;padding:26px 16px 20px}
+@media (min-width:820px){
+  .hudwrap{flex-direction:row;justify-content:center;gap:46px;padding:32px 26px 26px}
+}
+
+/* the clock core */
+.core{position:relative;width:260px;height:260px;flex:none;color:var(--accent)}
+@media (max-width:420px){.core{width:216px;height:216px}}
+.core svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.corering{filter:drop-shadow(0 0 14px rgba(0,228,239,.35))}
+#core-day{color:var(--accent);filter:drop-shadow(0 0 8px rgba(0,228,239,.9))}
+.corespin{color:var(--accent);opacity:.85}
+@media (prefers-reduced-motion:no-preference){
+  .corespin{animation:spin 26s linear infinite}
+  .corespin.rev{animation:spin 17s linear infinite reverse}
+}
+.coretxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;text-align:center;pointer-events:none}
+.coretxt .ct{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:44px;font-weight:700;line-height:1;color:var(--accent);
+  text-shadow:0 0 26px rgba(0,228,239,.65)}
+@media (max-width:420px){.coretxt .ct{font-size:36px}}
+.coretxt .cd{font-family:"Chakra Petch",sans-serif;font-size:11px;letter-spacing:.22em;color:var(--ink-2)}
+.coretxt .cp{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-3)}
+
+/* the gauge cluster */
+.gauges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}
+@media (min-width:820px){.gauges{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 26px}}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:8px}
+.gaugering{position:relative;width:104px;height:104px}
+@media (max-width:420px){.gaugering{width:88px;height:88px}}
+.gaugering svg{width:100%;height:100%;display:block;overflow:visible}
+.ring-good{color:var(--good)} .ring-critical{color:var(--critical)}
+.ring-warning{color:var(--warning)} .ring-question{color:var(--question)}
+.ring-accent{color:var(--accent)}
+.ringfill{filter:drop-shadow(0 0 7px currentColor);transition:stroke-dashoffset .5s ease}
+.gaugeval{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1px;pointer-events:none}
+.gaugeval .v{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:23px;font-weight:700;line-height:1;color:currentColor}
+.gaugeval .s{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--ink-3);letter-spacing:.06em}
+.gaugelbl{font-family:"Chakra Petch",sans-serif;font-size:9.5px;letter-spacing:.17em;
+  text-transform:uppercase;color:var(--ink-3);text-align:center}
+
+/* real readouts along the bottom — the small edge panels from the reference,
+   except every number here actually means something */
+.hudstrip{display:grid;gap:1px;background:rgba(0,228,239,.10);
+  grid-template-columns:repeat(auto-fit,minmax(122px,1fr));border-top:1px solid rgba(0,228,239,.14)}
+.hudcell{background:var(--glass);padding:10px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.hudcell .k{font-family:"Chakra Petch",sans-serif;font-size:9px;letter-spacing:.17em;
+  text-transform:uppercase;color:var(--ink-3)}
+.hudcell .v{font-family:"JetBrains Mono",monospace;font-size:13px;font-variant-numeric:tabular-nums;
+  color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hudcell .v.hot{color:var(--critical)} .hudcell .v.warm{color:var(--warning)}
+.hudcell .v.dim{color:var(--ink-3)}
+
+/* big things, as rings */
+.bigrings{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));padding:14px}
+.bigring{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-width:0}
+.bigring .gaugering{width:92px;height:92px}
+.bigring .nm{font-size:12.5px;color:var(--ink-2);overflow-wrap:anywhere;line-height:1.35}
+
 /* meters */
 .meterrow{padding:11px 14px;border-bottom:1px solid var(--edge-soft)}
 .meterrow:last-child{border-bottom:0}
@@ -522,14 +588,55 @@ body::before{
   </div>
 
   <nav class="tabs" role="tablist" aria-label="Views">
-    <button role="tab" data-view="today" aria-selected="true"><span class="bnum" id="t-today">–</span>Today</button>
+    <button role="tab" data-view="command" aria-selected="true"><span class="bnum" id="t-cmd">–</span>Command</button>
+    <button role="tab" data-view="today" aria-selected="false"><span class="bnum" id="t-today">–</span>Today</button>
     <button role="tab" data-view="open" aria-selected="false"><span class="bnum" id="t-open">–</span>All open</button>
     <button role="tab" data-view="blocked" aria-selected="false"><span class="bnum" id="t-blocked">–</span>Blocked</button>
     <button role="tab" data-view="ask" aria-selected="false"><span class="bnum" id="t-ask">–</span>Decide</button>
-    <button role="tab" data-view="track" aria-selected="false"><span class="bnum" id="t-track">–</span>Track</button>
   </nav>
 
-  <section class="view on two" id="v-today">
+  <section class="view on" id="v-command">
+    <div class="panel">
+      <div class="phead"><h2>Command</h2><span class="count" id="c-cmd"></span></div>
+      <div class="hudwrap">
+        <div class="core">
+          <svg class="corering" viewBox="0 0 260 260" aria-hidden="true">
+            <g id="core-ticks"></g>
+            <circle cx="130" cy="130" r="104" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
+            <circle id="core-day" cx="130" cy="130" r="104" fill="none" stroke="currentColor" stroke-width="6"
+                    stroke-linecap="round" transform="rotate(-90 130 130)"/>
+            <circle cx="130" cy="130" r="86" fill="none" stroke="currentColor" stroke-width="1" opacity=".18"/>
+            <circle cx="130" cy="130" r="70" fill="none" stroke="currentColor" stroke-width="1"
+                    stroke-dasharray="3 7" opacity=".3"/>
+          </svg>
+          <svg class="corespin" viewBox="0 0 260 260" aria-hidden="true">
+            <path d="M130 8a122 122 0 0 1 122 122" fill="none" stroke="currentColor" stroke-width="2" opacity=".65"/>
+            <path d="M130 252A122 122 0 0 1 8 130" fill="none" stroke="currentColor" stroke-width="2" opacity=".65"/>
+          </svg>
+          <svg class="corespin rev" viewBox="0 0 260 260" aria-hidden="true">
+            <path d="M232 130a102 102 0 0 1-46 85" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+            <path d="M28 130a102 102 0 0 1 46-85" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+          </svg>
+          <div class="coretxt">
+            <span class="ct" id="cmd-t">--:--</span>
+            <span class="cd" id="cmd-d">&nbsp;</span>
+            <span class="cp" id="cmd-day">&nbsp;</span>
+          </div>
+        </div>
+        <div class="gauges" id="hud-gauges"></div>
+      </div>
+      <div class="hudstrip" id="hud-strip"></div>
+    </div>
+
+    <div class="duo">
+      <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
+        <div class="pbody" id="b-big"><div class="skel"></div></div></div>
+      <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
+        <div class="pbody" id="b-sys"></div></div>
+    </div>
+  </section>
+
+  <section class="view two" id="v-today">
     <div class="panel"><div class="phead"><h2>Today &amp; next 2 days</h2><span class="count" id="c-today"></span></div>
       <div class="pbody" id="b-today"><div class="skel"></div><div class="skel"></div></div></div>
     <div class="panel"><div class="phead"><h2>Later this week</h2><span class="count" id="c-week"></span></div>
@@ -550,13 +657,6 @@ body::before{
   <section class="view" id="v-ask">
     <div class="panel"><div class="phead"><h2>Decisions waiting on you</h2><span class="count" id="c-q"></span></div>
       <div class="pbody" id="b-q"><div class="skel"></div><div class="skel"></div></div></div>
-  </section>
-
-  <section class="view two" id="v-track">
-    <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
-      <div class="pbody" id="b-big"><div class="skel"></div></div></div>
-    <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
-      <div class="pbody" id="b-sys"></div></div>
   </section>
 
   <div class="foot">
@@ -640,10 +740,26 @@ body::before{
   /* ---------- clock ---------- */
   function tick() {
     const n = new Date();
-    $("clock-t").textContent = new Intl.DateTimeFormat("en-GB",
+    const hm = new Intl.DateTimeFormat("en-GB",
       { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(n);
-    $("clock-d").textContent = new Intl.DateTimeFormat("en-GB",
+    const dm = new Intl.DateTimeFormat("en-GB",
       { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" }).format(n).toUpperCase();
+    $("clock-t").textContent = hm;
+    $("clock-d").textContent = dm;
+    /* the command core shows the same clock, plus how much of the day is gone */
+    if ($("cmd-t")) {
+      const p = hm.split(":");
+      const frac = ((Number(p[0]) * 60 + Number(p[1])) / 1440);
+      $("cmd-t").textContent = hm;
+      $("cmd-d").textContent = dm;
+      $("cmd-day").textContent = "DAY " + Math.round(frac * 100) + "%";
+      const arc = $("core-day");
+      if (arc) {
+        const C = 2 * Math.PI * 104;
+        arc.setAttribute("stroke-dasharray", C.toFixed(2));
+        arc.setAttribute("stroke-dashoffset", (C * (1 - frac)).toFixed(2));
+      }
+    }
   }
   tick(); setInterval(tick, 20000);
 
@@ -949,6 +1065,84 @@ body::before{
       (sub ? '<div class="meta"><span class="chip">' + esc(sub) + "</span></div>" : "") + "</div>";
   }
 
+  /* ---------- circular HUD ---------- */
+  /* One ring. pct drives the arc, the number sits in the middle — a ring is
+     harder to read a value off than a bar, and the centred number is what
+     buys that back. */
+  function ringSVG(pct, size, stroke, ticks) {
+    const cx = size / 2, cy = size / 2;
+    const r = cx - stroke / 2 - (ticks ? 9 : 3);
+    const C = 2 * Math.PI * r;
+    const p = Math.max(0, Math.min(1, pct || 0));
+    let t = "";
+    if (ticks) {
+      for (let i = 0; i < ticks; i++) {
+        const long = i % 5 === 0;
+        t += '<line x1="' + cx + '" y1="' + (cy - r - 4) + '" x2="' + cx + '" y2="' +
+             (cy - r - (long ? 9 : 6.5)) + '" transform="rotate(' + (i * (360 / ticks)) + ' ' + cx + ' ' + cy +
+             ')" stroke="currentColor" stroke-width="' + (long ? 1.3 : .7) + '" opacity="' + (long ? .5 : .2) + '"/>';
+      }
+    }
+    return '<svg viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">' + t +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="currentColor" stroke-width="' + stroke + '" opacity=".13"/>' +
+      '<circle class="ringfill" cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="currentColor" ' +
+      'stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + C.toFixed(2) + '" ' +
+      'stroke-dashoffset="' + (C * (1 - p)).toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')"/></svg>';
+  }
+
+  function gauge(label, value, sub, pct, tone) {
+    return '<div class="gauge"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 104, 7, 40) +
+      '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
+      (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
+      '<div class="gaugelbl">' + esc(label) + "</div></div>";
+  }
+
+  function cell(k, v, tone) {
+    return '<div class="hudcell"><span class="k">' + esc(k) + '</span><span class="v' +
+      (tone ? " " + tone : "") + '">' + esc(v) + "</span></div>";
+  }
+
+  /* static tick ring around the clock core, drawn once */
+  (function coreTicks() {
+    const g = $("core-ticks"); if (!g) return;
+    let s = "";
+    for (let i = 0; i < 60; i++) {
+      const long = i % 5 === 0;
+      s += '<line x1="130" y1="12" x2="130" y2="' + (12 + (long ? 9 : 5)) +
+           '" transform="rotate(' + (i * 6) + ' 130 130)" stroke="currentColor" stroke-width="' +
+           (long ? 1.5 : .8) + '" opacity="' + (long ? .5 : .2) + '"/>';
+    }
+    g.innerHTML = s;
+  })();
+
+  function renderCommand(open, done, todays, week, waiting, questions) {
+    const total = rows.length || 1;
+    $("hud-gauges").innerHTML =
+      gauge("Complete", Math.round((done.length / total) * 100) + "%", done.length + "/" + rows.length,
+            done.length / total, "good") +
+      gauge("Due now", todays.length, "of " + open.length,
+            open.length ? todays.length / open.length : 0, "critical") +
+      gauge("Blocked", waiting.length, "of " + open.length,
+            open.length ? waiting.length / open.length : 0, "warning") +
+      gauge("Decide", questions.length, "of " + open.length,
+            open.length ? questions.length / open.length : 0, "question");
+
+    const dated = open.filter((r) => r.due).sort((a, b) => a.due.localeCompare(b.due));
+    const overdue = open.filter((r) => r.due && dayDiff(r.due, TODAY) < 0).length;
+    const undated = open.filter((r) => !r.due).length;
+    const nxt = dated[0];
+    $("hud-strip").innerHTML =
+      cell("Next due", nxt ? "#" + nxt.ref + " · " + shortDate(nxt.due) : "nothing dated",
+           nxt ? (dayDiff(nxt.due, TODAY) <= 2 ? "hot" : dayDiff(nxt.due, TODAY) <= 7 ? "warm" : "") : "dim") +
+      cell("Overdue", overdue, overdue ? "hot" : "dim") +
+      cell("This week", week.length, week.length ? "warm" : "dim") +
+      cell("No date", undated + " of " + open.length, undated ? "warm" : "dim") +
+      cell("Tracked", rows.length + " tasks") +
+      cell("Last saved", stamp(doc && doc.updated), "dim");
+
+    $("c-cmd").textContent = open.length + " open";
+  }
+
   function render() {
     const open = rows.filter((r) => r.status !== "Done");
     const done = rows.filter((r) => r.status === "Done");
@@ -998,22 +1192,30 @@ body::before{
     const byRef = new Map(rows.map((r) => [String(r.ref), r]));
     const parents = rows.filter((r) => Array.isArray(r.subtasks) && r.subtasks.length > 0);
     const manual = rows.filter((r) => r.progress != null && !(Array.isArray(r.subtasks) && r.subtasks.length));
-    let big = "";
+    const bigs = [];
     parents.forEach((p) => {
       const kids = p.subtasks.map((k) => byRef.get(String(k))).filter(Boolean);
-      big += meterRow(p.task, kids.filter((k) => k.status === "Done").length, kids.length,
-        "#" + p.ref + (p.category ? " · " + p.category : ""));
+      const d = kids.filter((k) => k.status === "Done").length;
+      bigs.push({ name: p.task, pct: kids.length ? d / kids.length : 0,
+                  mid: d + "/" + kids.length, sub: "#" + p.ref });
     });
     manual.forEach((p) => {
       const pct = Math.max(0, Math.min(100, Math.round(Number(p.progress))));
-      big += '<div class="meterrow"><div class="meterhead"><span>' + esc(p.task) +
-        '</span><span class="v">' + pct + '%</span></div><div class="track"><div class="fill" style="width:' +
-        pct + '%"></div></div><div class="meta"><span class="chip">SET BY HAND</span></div></div>';
+      bigs.push({ name: p.task, pct: pct / 100, mid: pct + "%", sub: "by hand" });
     });
-    $("c-big").textContent = parents.length + manual.length;
-    $("t-track").textContent = parents.length + manual.length;
-    $("b-big").innerHTML = big || warn("No big thing set up yet. Type a <b>Progress %</b> on any task and a meter appears here.");
+    $("c-big").textContent = bigs.length;
+    $("t-cmd").textContent = rows.length;
+    $("b-big").innerHTML = bigs.length
+      ? '<div class="bigrings">' + bigs.map((b) => {
+          const tone = b.pct >= 1 ? "good" : b.pct > 0 ? "accent" : "warning";
+          return '<div class="bigring"><div class="gaugering ring-' + tone + '">' + ringSVG(b.pct, 92, 6, 30) +
+            '<div class="gaugeval"><span class="v" style="font-size:17px">' + esc(b.mid) + '</span>' +
+            '<span class="s">' + esc(b.sub) + "</span></div></div>" +
+            '<div class="nm">' + esc(b.name) + "</div></div>";
+        }).join("") + "</div>"
+      : warn("No big thing set up yet. Type a <b>Progress %</b> on any task and a ring appears here.");
 
+    renderCommand(open, done, todays, week, waiting, questions);
     renderAll(open);
 
     $("foot-store").textContent = "Store: GitHub · " + REPO;
@@ -1038,8 +1240,9 @@ body::before{
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
-    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-today", "t-open", "t-blocked", "t-ask", "t-track"]
+    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-today", "t-open", "t-blocked", "t-ask"]
       .forEach((id) => { $(id).textContent = "–"; });
+    $("hud-gauges").innerHTML = ""; $("hud-strip").innerHTML = ""; $("c-cmd").textContent = "";
   }
 
   /* ---------- editor ---------- */
