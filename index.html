@@ -26,8 +26,8 @@
   --critical:#FF6B6B; --warning:#FFB020; --good:#4ADE80; --question:#B18BFF;
   --sp:clamp(12px,3vw,22px); --gap:14px; --barh:60px;
   --chamfer:14px;
-  --glass:rgba(11,19,28,.62);
-  --glass-lit:rgba(14,25,34,.72);
+  --glass:rgba(9,16,24,.74);
+  --glass-lit:rgba(12,22,31,.82);
   /* the chamfered outline every framed surface shares */
   --cut:polygon(var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer));
 }
@@ -48,13 +48,15 @@ body{
    Same video URL as the sign-in screen, so it is already in the browser
    cache by the time you get here: no second download. */
 .bgvid{position:fixed;inset:0;z-index:-4;width:100%;height:100%;object-fit:cover;
-  opacity:.38;filter:blur(2px) saturate(120%);pointer-events:none}
+  opacity:.72;filter:blur(1px) saturate(120%);pointer-events:none}
 body.novid .bgvid{display:none}
-/* the scrim is what keeps 15px text readable over moving footage */
+/* Light scrim only. Readability comes from the panels' own dark glass, not
+   from drowning the footage — an earlier version stacked 38% video under an
+   86% scrim, which left about 5% of the video actually visible. */
 body::after{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
   background:
-    radial-gradient(120% 90% at 50% 0%,rgba(5,9,14,.55),rgba(5,9,14,.88) 70%),
-    linear-gradient(180deg,rgba(5,9,14,.70),rgba(5,9,14,.86))}
+    radial-gradient(130% 100% at 50% 0%,rgba(5,9,14,.10),rgba(5,9,14,.46) 72%),
+    linear-gradient(180deg,rgba(5,9,14,.22),rgba(5,9,14,.42))}
 
 /* Drifting grid. Fixed pseudo-element moved with transform rather than an
    animated background-position, so the phone composites it on the GPU
@@ -626,7 +628,7 @@ body::before{
     <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
     <button class="btn primary" id="new-task" type="button">+ New task</button>
     <button class="btn" id="refresh" type="button">Refresh</button>
-    <button class="btn" id="fx" type="button" aria-pressed="true">Video on</button>
+    <button class="btn" id="fx" type="button" aria-pressed="true">Video: On</button>
     <button class="btn danger" id="signout" type="button">Sign out</button>
   </header>
 
@@ -1613,7 +1615,9 @@ body::before{
     const off = fxOff();
     document.body.classList.toggle("novid", off);
     const b = $("fx");
-    if (b) { b.textContent = off ? "Video off" : "Video on"; b.setAttribute("aria-pressed", off ? "false" : "true"); }
+    /* state, not a command — "Video off" alone reads as a button that turns
+       it off, which is exactly backwards from what it means */
+    if (b) { b.textContent = off ? "Video: Off" : "Video: On"; b.setAttribute("aria-pressed", off ? "false" : "true"); }
   }
   $("fx").addEventListener("click", () => {
     const wasOff = fxOff();
