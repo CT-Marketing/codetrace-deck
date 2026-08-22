@@ -432,8 +432,9 @@ body::before{
 <!-- ---------------- token gate ---------------- -->
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h">
   <div class="gate-fallback"></div>
-  <video class="gate-vid" id="gate-vid" autoplay loop muted playsinline
-         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+  <!-- src is attached by script only while this screen is visible: see startGateVideo -->
+  <video class="gate-vid" id="gate-vid" loop muted playsinline preload="none"
+         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
   <div class="gate-blur"></div>
 
   <div class="gate-inner">
@@ -685,9 +686,14 @@ body::before{
     $("gate-msg").innerHTML = message || "";
     $("gate").classList.remove("hidden");
     $("gate-tok").value = "";
+    startGateVideo();
     setTimeout(() => $("gate-tok").focus(), 60);
   }
-  function hideGate() { $("gate").classList.add("hidden"); document.body.classList.add("ready"); }
+  function hideGate() {
+    $("gate").classList.add("hidden");
+    document.body.classList.add("ready");
+    stopGateVideo();
+  }
 
   async function tryToken(t) {
     $("gate-go").disabled = true;
@@ -1203,25 +1209,34 @@ body::before{
   });
 
   /* ---------- sign-in video ----------
-     It is hosted on someone else's CDN, so assume it can vanish. If it fails
-     to load or is blocked, drop it and let the CSS backdrop show through
-     rather than leaving a black rectangle. */
-  (function gateVideo() {
-    const v = $("gate-vid"); if (!v) return;
-    const drop = () => { v.style.display = "none"; };
+     Attached only while the sign-in screen is on screen. The file is ~9 MB and
+     a hidden <video src> still downloads, so wiring it up permanently would
+     cost 9 MB on every dashboard load for a screen you cannot see.
+     It also lives on someone else's CDN, so assume it can vanish: on any
+     failure we drop it and let the CSS backdrop show through. */
+  function startGateVideo() {
+    const v = $("gate-vid");
+    if (!v || v.dataset.on === "1" || !v.dataset.src) return;
+    v.dataset.on = "1";
+    v.style.display = "";
+    v.muted = true;                       /* property, not just attribute, or autoplay is refused */
+    v.src = v.dataset.src;
+    const drop = () => { if (v.dataset.on === "1") v.style.display = "none"; };
     v.addEventListener("error", drop, true);
-    v.addEventListener("stalled", () => { if (!v.videoWidth) drop(); });
-    setTimeout(() => { if (!v.videoWidth) drop(); }, 8000);
-    /* muted must be set as a property, not just an attribute, before some
-       browsers will allow autoplay at all */
-    v.muted = true;
+    setTimeout(() => { if (v.dataset.on === "1" && !v.videoWidth) drop(); }, 9000);
     const kick = () => { const p = v.play && v.play(); if (p && p.catch) p.catch(() => {}); };
     kick();
-    /* If the browser refused autoplay anyway, start it on the first touch.
-       A paused first frame still looks right, so this is a nicety, not a fix. */
+    /* If the browser refused autoplay, start on first touch. A paused first
+       frame still looks right, so this is a nicety rather than a fix. */
     ["pointerdown", "touchstart", "keydown"].forEach((ev) =>
       document.addEventListener(ev, kick, { once: true, passive: true }));
-  })();
+  }
+  function stopGateVideo() {
+    const v = $("gate-vid");
+    if (!v || v.dataset.on !== "1") return;
+    v.dataset.on = "";
+    try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {}
+  }
 
   /* ---------- entrance, once per session ----------
      sessionStorage, not localStorage: you get the flourish when you first
