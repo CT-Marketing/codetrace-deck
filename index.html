@@ -533,6 +533,10 @@ body::before{
   to{opacity:1;filter:blur(0);transform:translateY(0)}
 }
 .bfu{opacity:0;animation:blurFadeUp 1s ease-out forwards}
+/* Once the animation has run the class is stripped by script. A lingering
+   filter — even filter:blur(0) — keeps the element on its own rasterised
+   layer, which is what was softening the logo on a high-DPI phone. */
+.bfu-done{opacity:1;animation:none;filter:none;transform:none}
 @media (prefers-reduced-motion:reduce){
   .bfu{opacity:1;animation:none}
 }
@@ -573,7 +577,7 @@ body::before{
   <div class="gate-fallback"></div>
   <!-- src is attached by script only while this screen is visible: see startGateVideo -->
   <video class="gate-vid" id="gate-vid" loop muted playsinline preload="none"
-         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+         data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"></video>
   <div class="gate-blur"></div>
 
   <div class="gate-inner">
@@ -612,7 +616,7 @@ body::before{
 <!-- ---------------- app ---------------- -->
 <!-- same file as the sign-in video, so it is served from cache: no new download -->
 <video class="bgvid" id="bg-vid" loop muted playsinline preload="none"
-       data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+       data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"></video>
 
 <div class="wrap">
 
@@ -1559,7 +1563,7 @@ body::before{
   });
 
   /* ---------- sign-in video ----------
-     Attached only while the sign-in screen is on screen. The file is ~9 MB and
+     Attached only while the sign-in screen is on screen. The file is ~14 MB and
      a hidden <video src> still downloads, so wiring it up permanently would
      cost 9 MB on every dashboard load for a screen you cannot see.
      It also lives on someone else's CDN, so assume it can vanish: on any
@@ -1616,6 +1620,14 @@ body::before{
     if (wasOff) startBgVideo(); else stopBgVideo();
   });
   applyFx();
+
+  /* Drop the blur-fade-up class once it has finished so nothing is left
+     sitting on its own rasterised layer. */
+  document.querySelectorAll(".bfu").forEach((el) => {
+    el.addEventListener("animationend", () => {
+      el.classList.remove("bfu"); el.classList.add("bfu-done");
+    }, { once: true });
+  });
 
   /* ---------- entrance, once per session ----------
      sessionStorage, not localStorage: you get the flourish when you first
