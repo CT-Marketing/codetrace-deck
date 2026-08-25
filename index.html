@@ -1556,11 +1556,16 @@ body{font-size:16px;line-height:1.55}
   const pad2 = (n) => (n < 10 ? "0" + n : "" + n);
   const isoOf = (y, m, d) => y + "-" + pad2(m + 1) + "-" + pad2(d);
 
+  /* Must run before anything reads or shifts the month — stepping from an
+     uninitialised month produced "February 0". */
+  function calInit() {
+    if (calYear !== null) return;
+    const p = TODAY.split("-");
+    calYear = Number(p[0]); calMonth = Number(p[1]) - 1;
+  }
+
   function renderCalendar() {
-    if (calYear === null) {
-      const p = TODAY.split("-");
-      calYear = Number(p[0]); calMonth = Number(p[1]) - 1;
-    }
+    calInit();
     const byDay = new Map();
     rows.forEach((t) => {
       if (!t.due) return;
@@ -1612,6 +1617,7 @@ body{font-size:16px;line-height:1.55}
   }
 
   function calShift(n) {
+    calInit();
     const m = calMonth + n;
     calYear += Math.floor(m / 12);
     calMonth = ((m % 12) + 12) % 12;
