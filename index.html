@@ -774,6 +774,47 @@ body{
 .hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
 @media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
 
+/* ---------- charts ---------- */
+.donutwrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center;padding:20px 18px}
+.donut{width:154px;height:154px;flex:none;position:relative}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.donutmid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.donutmid .dv{font-family:"Fredoka",sans-serif;font-size:28px;color:var(--ink);line-height:1}
+.donutmid .dl{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3)}
+.legend{display:flex;flex-direction:column;gap:9px;min-width:150px;flex:1}
+.legend .li{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-2)}
+.legend .sw{width:12px;height:12px;border-radius:5px;flex:none}
+.legend .lv{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12.5px;
+  color:var(--ink);padding-left:14px}
+
+.hbars{display:flex;flex-direction:column;gap:14px;padding:20px 18px}
+.hbar{display:grid;grid-template-columns:92px 1fr 46px;align-items:center;gap:12px}
+.hbar .hl{font-size:13px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .ht{height:18px;border-radius:999px;background:var(--edge-soft);overflow:hidden}
+.hbar .hf{height:100%;border-radius:999px;min-width:4px;transition:width .45s ease}
+.hbar .hv{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink);text-align:right}
+@media (max-width:480px){.hbar{grid-template-columns:74px 1fr 38px;gap:9px}}
+
+.cols{display:flex;align-items:flex-end;gap:5px;padding:20px 18px 8px;height:158px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.col .cb{width:100%;border-radius:9px 9px 0 0;min-height:4px;background:var(--accent);transition:height .45s ease}
+.col .cb.zero{background:var(--edge-soft)}
+.col .cb.hot{background:var(--critical)}
+.col .cv{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink)}
+.collabels{display:flex;gap:5px;padding:0 18px 18px}
+.collabels span{flex:1;text-align:center;font-family:"JetBrains Mono",monospace;
+  font-size:9.5px;color:var(--ink-3);overflow:hidden;white-space:nowrap}
+.collabels span.now{color:var(--accent);font-weight:700}
+
+.spark{padding:20px 18px 14px}
+.spark svg{width:100%;height:130px;display:block;overflow:visible}
+.sparkhead{display:flex;gap:18px;flex-wrap:wrap;padding:0 18px 4px}
+.sparkhead .sh{display:flex;flex-direction:column}
+.sparkhead .shv{font-family:"Fredoka",sans-serif;font-size:24px;color:var(--ink);line-height:1.1}
+.sparkhead .shl{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3)}
+
 /* ---------- calendar ---------- */
 .calnav{font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1;
   background:var(--panel);border:1px solid var(--edge);color:var(--ink-2);
@@ -1000,10 +1041,20 @@ body{
     </div>
 
     <div class="duo">
-      <div class="panel"><div class="phead"><h2>Priority mix</h2><span class="count" id="c-prio"></span></div>
-        <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
+      <div class="panel"><div class="phead"><h2>Status mix</h2><span class="count" id="c-status"></span></div>
+        <div class="pbody" id="b-status"><div class="skel"></div></div></div>
       <div class="panel"><div class="phead"><h2>Load by category</h2><span class="count" id="c-cat"></span></div>
         <div class="pbody" id="b-cat"><div class="skel"></div></div></div>
+    </div>
+
+    <div class="panel"><div class="phead"><h2>Activity</h2><span class="count" id="c-act"></span></div>
+      <div class="pbody" id="b-act"><div class="skel"></div></div></div>
+
+    <div class="duo">
+      <div class="panel"><div class="phead"><h2>Priority mix</h2><span class="count" id="c-prio"></span></div>
+        <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
+      <div class="panel"><div class="phead"><h2>Load by person</h2><span class="count" id="c-ppl"></span></div>
+        <div class="pbody" id="b-ppl"><div class="skel"></div></div></div>
     </div>
 
     <div class="panel">
@@ -1017,15 +1068,11 @@ body{
       <div class="pbody" id="b-cal"><div class="skel"></div></div>
     </div>
 
-    <div class="panel"><div class="phead"><h2>7-day horizon</h2><span class="count" id="c-hz"></span></div>
+    <div class="panel"><div class="phead"><h2>Landing next 14 days</h2><span class="count" id="c-hz"></span></div>
       <div class="pbody" id="b-hz"><div class="skel"></div></div></div>
 
-    <div class="duo">
-      <div class="panel"><div class="phead"><h2>Load by person</h2><span class="count" id="c-ppl"></span></div>
-        <div class="pbody" id="b-ppl"><div class="skel"></div></div></div>
-      <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
-        <div class="pbody" id="b-big"><div class="skel"></div></div></div>
-    </div>
+    <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
+      <div class="pbody" id="b-big"><div class="skel"></div></div></div>
 
     <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
       <div class="pbody" id="b-sys"></div></div>
@@ -1509,6 +1556,72 @@ body{
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
   }
 
+  /* ---------- chart primitives ----------
+     All inline SVG and CSS. No chart library, because the whole app has to
+     stay one file that works offline-ish on a bad connection. */
+  const PAL = { brand:"#B03A5B", event:"#1F5C8C", partn:"#2F6B3A", admin:"#8A5A00",
+                lilac:"#5B3FA8", rose:"#A11B2E", terra:"#A33A1E", sand:"#B9A78C" };
+
+  function donut(segs, midValue, midLabel) {
+    const total = segs.reduce((a, s) => a + s.value, 0);
+    const R = 58, C = 2 * Math.PI * R;
+    let off = 0, arcs = "";
+    if (!total) {
+      arcs = '<circle cx="77" cy="77" r="' + R + '" fill="none" stroke="#E4DCCB" stroke-width="24"/>';
+    } else {
+      segs.forEach((g) => {
+        if (!g.value) return;
+        const len = C * (g.value / total);
+        arcs += '<circle cx="77" cy="77" r="' + R + '" fill="none" stroke="' + g.color +
+          '" stroke-width="24" stroke-dasharray="' + len.toFixed(2) + " " + (C - len).toFixed(2) +
+          '" stroke-dashoffset="' + (-off).toFixed(2) + '"/>';
+        off += len;
+      });
+    }
+    return '<div class="donutwrap"><div class="donut"><svg viewBox="0 0 154 154">' + arcs + "</svg>" +
+      '<div class="donutmid"><span class="dv">' + esc(midValue) + '</span>' +
+      '<span class="dl">' + esc(midLabel) + "</span></div></div>" +
+      '<div class="legend">' + segs.map((g) =>
+        '<span class="li"><span class="sw" style="background:' + g.color + '"></span>' +
+        esc(g.label) + '<span class="lv">' + g.value +
+        (total ? " · " + Math.round((g.value / total) * 100) + "%" : "") + "</span></span>").join("") +
+      "</div></div>";
+  }
+
+  function hbars(items) {
+    const max = Math.max(1, ...items.map((i) => i.value));
+    return '<div class="hbars">' + items.map((i) =>
+      '<div class="hbar"><span class="hl">' + esc(i.label) + "</span>" +
+      '<span class="ht"><span class="hf" style="width:' + Math.round((i.value / max) * 100) +
+      "%;background:" + i.color + '"></span></span>' +
+      '<span class="hv">' + i.value + "</span></div>").join("") + "</div>";
+  }
+
+  function cols(items) {
+    const max = Math.max(1, ...items.map((i) => i.value));
+    return '<div class="cols">' + items.map((i) =>
+      '<div class="col"><span class="cv">' + i.value + "</span>" +
+      '<span class="cb' + (i.value ? (i.hot ? " hot" : "") : " zero") +
+      '" style="height:' + (i.value ? Math.max(6, Math.round((i.value / max) * 100)) : 3) + '%"></span></div>').join("") +
+      '</div><div class="collabels">' + items.map((i) =>
+      '<span' + (i.now ? ' class="now"' : "") + ">" + esc(i.label) + "</span>").join("") + "</div>";
+  }
+
+  function sparkline(values, labels) {
+    const max = Math.max(1, ...values), n = values.length;
+    const W = 100, H = 100;
+    const pt = (v, i) => [(i / Math.max(1, n - 1)) * W, H - (v / max) * H];
+    const line = values.map((v, i) => pt(v, i).map((x) => x.toFixed(2)).join(",")).join(" ");
+    const area = "0," + H + " " + line + " " + W + "," + H;
+    const dots = values.map((v, i) => { const p = pt(v, i);
+      return '<circle cx="' + p[0].toFixed(2) + '" cy="' + p[1].toFixed(2) + '" r="1.4" fill="' + PAL.terra + '"/>'; }).join("");
+    return '<div class="spark"><svg viewBox="0 0 100 100" preserveAspectRatio="none">' +
+      '<polygon points="' + area + '" fill="rgba(163,58,30,.13)"/>' +
+      '<polyline points="' + line + '" fill="none" stroke="' + PAL.terra +
+      '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+      dots + "</svg></div>";
+  }
+
   function miniRing(name, value, sub, pct, tone) {
     return '<div class="miniring"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 78, 9, 0) +
       '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
@@ -1561,62 +1674,115 @@ body{
 
     $("c-cmd").textContent = open.length + " open";
 
-    /* ---- priority mix ---- */
-    const share = (n) => (open.length ? n / open.length : 0);
-    const pctTxt = (n) => (open.length ? Math.round((n / open.length) * 100) + "%" : "");
-    const PTONE = { "Urgent Today": "critical", "High": "warning", "Medium": "accent", "Low": "dim" };
-    const prio = PRIORITIES.map((p) => {
-      const n = open.filter((r) => r.priority === p).length;
-      return { name: p === "Urgent Today" ? "Urgent" : p, value: n, sub: pctTxt(n), pct: share(n), tone: PTONE[p] };
-    });
+    /* ---- status mix, as a donut over every task ---- */
+    const CS = [
+      { label: "Done", value: rows.filter((r) => r.status === "Done").length, color: PAL.partn },
+      { label: "In Progress", value: rows.filter((r) => r.status === "In Progress").length, color: PAL.event },
+      { label: "Waiting on Someone", value: rows.filter((r) => r.status === "Waiting on Someone").length, color: PAL.admin },
+      { label: "Not Started", value: rows.filter((r) => r.status === "Not Started").length, color: PAL.sand }
+    ];
+    $("c-status").textContent = rows.length + " tasks";
+    $("b-status").innerHTML = rows.length
+      ? donut(CS, Math.round((done.length / (rows.length || 1)) * 100) + "%", "complete")
+      : ok("No tasks yet, so there is no status mix to show.");
+
+    /* ---- priority, as bars ---- */
+    const PC = { "Urgent Today": PAL.rose, "High": PAL.admin, "Medium": PAL.event, "Low": PAL.sand };
+    const prio = PRIORITIES.map((p) => ({
+      label: p === "Urgent Today" ? "Urgent" : p,
+      value: open.filter((r) => r.priority === p).length, color: PC[p]
+    }));
     const noPrio = open.filter((r) => !r.priority).length;
-    if (noPrio) prio.push({ name: "Not set", value: noPrio, sub: pctTxt(noPrio), pct: share(noPrio), tone: "dim" });
-    $("c-prio").textContent = open.length;
-    $("b-prio").innerHTML = open.length ? ringGrid(prio)
+    if (noPrio) prio.push({ label: "Not set", value: noPrio, color: PAL.sand });
+    $("c-prio").textContent = open.length + " open";
+    $("b-prio").innerHTML = open.length ? hbars(prio)
       : ok("Nothing is open, so there is no priority mix to show.");
 
-    /* ---- load by category ---- */
-    const cats = CATEGORIES.map((c) => {
-      const n = open.filter((r) => r.category === c).length;
-      return { name: c, value: n, sub: pctTxt(n), pct: share(n), tone: n ? "accent" : "dim" };
-    });
+    /* ---- category, as a donut ---- */
+    const CC = { "Branding": PAL.brand, "Events": PAL.event, "Partnerships": PAL.partn, "Admin": PAL.admin };
+    const cats = CATEGORIES.map((c) => ({
+      label: c, value: open.filter((r) => r.category === c).length, color: CC[c] || PAL.lilac
+    }));
     const noCat = open.filter((r) => !r.category).length;
-    if (noCat) cats.push({ name: "None", value: noCat, sub: pctTxt(noCat), pct: share(noCat), tone: "dim" });
-    $("c-cat").textContent = cats.length;
+    if (noCat) cats.push({ label: "None", value: noCat, color: PAL.sand });
+    $("c-cat").textContent = open.length + " open";
     $("b-cat").innerHTML = !open.length ? ok("Nothing is open, so there is nothing to break down by category.")
       : !cats.length ? warn("No categories are set up. Add a <code>vocab.categories</code> list to tasks.json.")
-      : ringGrid(cats);
+      : donut(cats, open.length, "open");
 
-    /* ---- 7-day horizon ---- */
+    /* ---- what lands over the next fortnight, as columns ---- */
     const hz = [];
-    if (overdue) hz.push({ name: "Overdue", value: overdue, sub: "past due", pct: 1, tone: "critical" });
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 14; i++) {
       const d = new Date(Date.parse(TODAY + "T00:00:00Z") + i * 86400000);
       const iso = d.toISOString().slice(0, 10);
       const n = open.filter((r) => r.due === iso).length;
-      const nm = i === 0 ? "Today" : i === 1 ? "Tmrw"
-        : new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short" }).format(d);
-      hz.push({ name: nm, value: n, sub: shortDate(iso),
-                pct: n ? Math.min(1, n / 3) : 0,
-                tone: !n ? "dim" : i <= 2 ? "critical" : "warning" });
+      hz.push({
+        label: i === 0 ? "TDY" : new Intl.DateTimeFormat("en-GB",
+          { timeZone: "UTC", day: "numeric" }).format(d),
+        value: n, hot: i <= 2 && n > 0, now: i === 0
+      });
     }
-    const datedSoon = hz.reduce((a, b) => a + (Number(b.value) || 0), 0);
-    $("c-hz").textContent = datedSoon;
-    $("b-hz").innerHTML = ringGrid(hz) + (undated
-      ? warn(undated + " of " + open.length + " open tasks have no date at all, so they cannot appear here.")
-      : "");
+    $("c-hz").textContent = hz.reduce((a, b) => a + b.value, 0) + " dated";
+    $("b-hz").innerHTML = cols(hz) +
+      (overdue ? warn("<b>" + overdue + "</b> already overdue, which is not shown above.") : "") +
+      (undated ? warn(undated + " of " + open.length + " open tasks have no date at all, so they cannot appear here.") : "");
 
-    /* ---- load by person ---- */
-    const ppl = PEOPLE.map((p) => {
-      const n = open.filter((r) => Array.isArray(r.people) && r.people.includes(p)).length;
-      return { name: p, value: n, sub: pctTxt(n), pct: share(n), tone: n ? "accent" : "dim" };
-    });
+    /* ---- who is carrying what, as bars ---- */
+    const ppl = PEOPLE.map((p) => ({
+      label: p, value: open.filter((r) => Array.isArray(r.people) && r.people.includes(p)).length,
+      color: PAL.terra
+    }));
     const nobody = open.filter((r) => !Array.isArray(r.people) || !r.people.length).length;
-    if (nobody) ppl.push({ name: "Nobody", value: nobody, sub: pctTxt(nobody), pct: share(nobody), tone: "dim" });
-    $("c-ppl").textContent = ppl.length;
+    if (nobody) ppl.push({ label: "Nobody", value: nobody, color: PAL.sand });
+    $("c-ppl").textContent = open.length + " open";
     $("b-ppl").innerHTML = !open.length ? ok("Nothing is open, so nobody is carrying anything.")
       : !PEOPLE.length ? warn("No people are set up. Add a <code>vocab.people</code> list to tasks.json.")
-      : ringGrid(ppl);
+      : hbars(ppl);
+  }
+
+  /* ---- activity, from the repo's own commit history ----
+     Every save is a commit, so the change log is a real activity record.
+     Written defensively: if the key cannot read history, say so plainly
+     rather than leaving an empty box. */
+  async function loadActivity() {
+    const el = $("b-act"); if (!el || !token) return;
+    const DAYS = 30;
+    try {
+      const since = new Date(Date.now() - (DAYS - 1) * 86400000).toISOString();
+      const j = await ghFetch(API + "/repos/" + encodeURIComponent(OWNER) + "/" +
+        encodeURIComponent(REPO) + "/commits?per_page=100&since=" + encodeURIComponent(since),
+        { headers: ghHeaders(), cache: "no-store" });
+      if (!Array.isArray(j)) throw { kind: "badjson" };
+      const perDay = new Map(), labels = [];
+      for (let i = DAYS - 1; i >= 0; i--) {
+        const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        perDay.set(iso, 0); labels.push(iso);
+      }
+      let ticked = 0;
+      j.forEach((c) => {
+        const iso = (c.commit && c.commit.author && c.commit.author.date || "").slice(0, 10);
+        if (perDay.has(iso)) perDay.set(iso, perDay.get(iso) + 1);
+        if (/^Tick #/.test((c.commit && c.commit.message) || "")) ticked++;
+      });
+      const values = labels.map((d) => perDay.get(d));
+      const totalC = values.reduce((a, b) => a + b, 0);
+      const busiest = Math.max(...values);
+      el.innerHTML =
+        '<div class="sparkhead">' +
+          '<span class="sh"><span class="shv">' + totalC + '</span><span class="shl">changes · 30 days</span></span>' +
+          '<span class="sh"><span class="shv">' + ticked + '</span><span class="shl">ticked done</span></span>' +
+          '<span class="sh"><span class="shv">' + busiest + '</span><span class="shl">busiest day</span></span>' +
+        "</div>" + sparkline(values, labels) +
+        (j.length === 100 ? warn("Showing the most recent 100 changes only.") : "");
+      $("c-act").textContent = "30 days";
+    } catch (e) {
+      el.innerHTML = (e && (e.status === 403 || e.status === 404))
+        ? warn("Your key cannot read this repository's change history. It only needs <b>Contents: Read</b>, " +
+               "which it already has for tasks &mdash; some older keys are scoped more narrowly. " +
+               "Everything else on this page still works.")
+        : warn("Could not load the change history just now.");
+      $("c-act").textContent = "";
+    }
   }
 
   /* ---------- calendar ----------
@@ -1785,6 +1951,7 @@ body{
 
     renderCommand(open, done, todays, week, waiting, questions);
     renderCalendar();
+    loadActivity();
     renderAll(open);
 
     /* greeting — reads the clock and the board, never invents cheer */
@@ -1822,7 +1989,7 @@ body{
   }
 
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
-                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal"];
+                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
     ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-today", "t-open", "t-blocked", "t-ask"]
