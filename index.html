@@ -1167,8 +1167,8 @@ body{
      an empty picker with no explanation. */
   /* Anything you typed that we have not seen before is folded back into the
      vocab, so the category picker grows with you and the charts can group
-     by it next time. Case-insensitive, so "pang" does not become a second
-     person alongside "Pang". */
+     by it next time. Case-insensitive, so a name typed in lower case does
+     not become a second person alongside its capitalised twin. */
   function rememberVocab(d) {
     d.vocab = d.vocab || {};
     const merge = (key, values) => {
@@ -2090,7 +2090,7 @@ body{
   }
   function closeEditor() { $("scrim").classList.remove("on"); editing = null; }
 
-  /* "Kevin,  pang , Kevin" -> ["Kevin","pang"] */
+  /* "Ada,  bob , Ada" -> ["Ada","bob"] */
   function parsePeople(s) {
     const out = [], seen = new Set();
     String(s || "").split(/[,;\n]/).forEach((p) => {
