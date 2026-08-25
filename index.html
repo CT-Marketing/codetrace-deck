@@ -2102,6 +2102,17 @@ body{
     loadActivity();
     renderAll(open);
 
+    /* Home-screen icon badge. Supported for installed web apps on iOS 16.4+
+       and on Android/desktop Chrome. It only refreshes while the app is
+       open — without a push server nothing can update it in the background,
+       so treat it as "what it was when you last looked". */
+    try {
+      if (navigator.setAppBadge) {
+        const n = todays.length;
+        if (n) navigator.setAppBadge(n); else navigator.clearAppBadge();
+      }
+    } catch (e) { /* unsupported browsers simply have no badge */ }
+
     /* greeting — reads the clock and the board, never invents cheer */
     const hr = Number(new Intl.DateTimeFormat("en-GB",
       { timeZone: TZ, hour: "2-digit", hour12: false }).format(new Date()));
