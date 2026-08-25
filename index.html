@@ -774,6 +774,14 @@ body{
 .hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
 @media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
 
+/* ---------- tenure ---------- */
+.tenure{padding:24px 20px;display:flex;flex-direction:column;gap:5px}
+.tenure .tv{font-family:"Fredoka",sans-serif;font-size:clamp(38px,7vw,54px);line-height:1;color:var(--accent)}
+.tenure .tl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+.tenure .ts{font-size:14.5px;color:var(--ink-2);font-weight:600;margin-top:7px}
+.tenure .tanniv{font-size:13px;color:var(--ink-3);margin-top:2px}
+
 /* ---------- week board ---------- */
 .weekbar{display:flex;gap:8px;align-items:center;padding:14px 18px 0;flex-wrap:wrap}
 .weekbar .wlabel{font-family:"Fredoka",sans-serif;font-size:16px;color:var(--ink);margin-right:auto}
@@ -1161,8 +1169,12 @@ body{
     <div class="panel"><div class="phead"><h2>Landing next 14 days</h2><span class="count" id="c-hz"></span></div>
       <div class="pbody" id="b-hz"><div class="skel"></div></div></div>
 
-    <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
-      <div class="pbody" id="b-big"><div class="skel"></div></div></div>
+    <div class="duo">
+      <div class="panel"><div class="phead"><h2>Time at CodeTrace</h2><span class="count" id="c-ten"></span></div>
+        <div class="pbody" id="b-ten"><div class="skel"></div></div></div>
+      <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
+        <div class="pbody" id="b-big"><div class="skel"></div></div></div>
+    </div>
 
     <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
       <div class="pbody" id="b-sys"></div></div>
@@ -1698,6 +1710,47 @@ body{
       '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
+  }
+
+  /* ---------- tenure ----------
+     Counts from doc.startedAt, so the date is data rather than something
+     baked into the app. Calendar arithmetic, not days ÷ 365 — that drifts. */
+  function renderTenure() {
+    const iso = doc && doc.startedAt;
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      $("c-ten").textContent = "";
+      $("b-ten").innerHTML = warn("No start date recorded. Add " +
+        "<code>\"startedAt\": \"YYYY-MM-DD\"</code> to tasks.json and this fills in.");
+      return;
+    }
+    const s = iso.split("-").map(Number), t = TODAY.split("-").map(Number);
+    let y = t[0] - s[0], m = t[1] - s[1], d = t[2] - s[2];
+    if (d < 0) { m--; d += new Date(Date.UTC(t[0], t[1] - 1, 0)).getUTCDate(); }
+    if (m < 0) { y--; m += 12; }
+    const days = Math.round((Date.parse(TODAY + "T00:00:00Z") - Date.parse(iso + "T00:00:00Z")) / 86400000);
+
+    /* next anniversary */
+    let nextY = t[0];
+    if (t[1] > s[1] || (t[1] === s[1] && t[2] >= s[2])) nextY++;
+    const anniv = nextY + "-" + pad2(s[1]) + "-" + pad2(s[2]);
+    const untilA = Math.round((Date.parse(anniv + "T00:00:00Z") - Date.parse(TODAY + "T00:00:00Z")) / 86400000);
+
+    const unit = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+    const parts = [unit(y, "year")];
+    if (m) parts.push(unit(m, "month"));
+    if (d) parts.push(unit(d, "day"));
+    const started = new Intl.DateTimeFormat("en-GB",
+      { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" })
+      .format(new Date(Date.parse(iso + "T00:00:00Z")));
+
+    $("c-ten").textContent = "since " + iso;
+    $("b-ten").innerHTML =
+      '<div class="tenure"><span class="tv">' + days.toLocaleString("en-GB") + "</span>" +
+      '<span class="tl">days at CodeTrace</span>' +
+      '<span class="ts">' + esc(parts.join(", ")) + "</span>" +
+      '<span class="tanniv">Started ' + esc(started) + " · " +
+      (untilA === 0 ? "<b>that is today</b>"
+        : "year " + (nextY - s[0]) + " in " + unit(untilA, "day")) + "</span></div>";
   }
 
   /* ---------- week board ----------
@@ -2281,6 +2334,7 @@ body{
     renderCommand(open, done, todays, week, waiting, questions);
     renderCalendar();
     renderWeek();
+    renderTenure();
     renderMap();
     loadActivity();
     renderAll(open);
@@ -2331,7 +2385,7 @@ body{
   }
 
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
-                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map", "b-week-board"];
+                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map", "b-week-board", "b-ten"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
     ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-week", "t-today", "t-open", "t-blocked", "t-ask"]
