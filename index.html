@@ -896,6 +896,9 @@ body{
    here, or it wins on source order and flattens three of the five back
    to the same beige. */
 
+/* no reticle rings behind the top-bar clock */
+.clock::before,.clock::after{display:none}
+
 /* Blossom keeps you company in the top bar */
 .brand .mark{width:32px;height:32px;flex:none;display:block;margin-right:2px}
 .brand{gap:8px;align-items:center}
@@ -1116,8 +1119,12 @@ body{
     <div class="fld"><label for="f-task">Task</label><input type="text" id="f-task" autocomplete="off"></div>
     <div class="fld"><label>Status</label><div class="seg" id="f-status"></div></div>
     <div class="fld"><label>Priority</label><div class="seg" id="f-priority"></div></div>
-    <div class="fld"><label>Category</label><div class="seg" id="f-category"></div></div>
-    <div class="fld"><label>People</label><div class="seg" id="f-people"></div></div>
+    <div class="fld"><label>Category</label><div class="seg" id="f-category"></div>
+      <input type="text" id="f-catnew" autocomplete="off" style="margin-top:9px"
+             placeholder="…or type a new category"></div>
+    <div class="fld"><label for="f-people">People</label>
+      <input type="text" id="f-people" autocomplete="off"
+             placeholder="Names, separated by commas"></div>
     <div class="fld srow">
       <div><label for="f-due">Due</label><input type="date" id="f-due"></div>
       <div><label for="f-prog">Progress %</label><input type="number" id="f-prog" min="0" max="100" step="5" inputmode="numeric"></div>
@@ -1158,14 +1165,43 @@ body{
   /* If tasks.json has no vocab block, fall back to whatever the tasks
      themselves already use, so the editor still works rather than showing
      an empty picker with no explanation. */
+  /* Anything you typed that we have not seen before is folded back into the
+     vocab, so the category picker grows with you and the charts can group
+     by it next time. Case-insensitive, so "pang" does not become a second
+     person alongside "Pang". */
+  function rememberVocab(d) {
+    d.vocab = d.vocab || {};
+    const merge = (key, values) => {
+      const list = Array.isArray(d.vocab[key]) ? d.vocab[key].slice() : [];
+      const seen = new Set(list.map((v) => String(v).toLowerCase()));
+      values.forEach((v) => {
+        if (!v) return;
+        const k = String(v).toLowerCase();
+        if (seen.has(k)) return;
+        seen.add(k); list.push(v);
+      });
+      d.vocab[key] = list;
+    };
+    merge("categories", d.tasks.map((t) => t.category).filter(Boolean));
+    merge("people", d.tasks.flatMap((t) => Array.isArray(t.people) ? t.people : []));
+  }
+
   function loadVocab(d) {
     const v = (d && d.vocab) || {};
-    CATEGORIES = Array.isArray(v.categories) && v.categories.length
-      ? v.categories.slice()
-      : [...new Set((d.tasks || []).map((t) => t.category).filter(Boolean))].sort();
-    PEOPLE = Array.isArray(v.people) && v.people.length
-      ? v.people.slice()
-      : [...new Set((d.tasks || []).flatMap((t) => Array.isArray(t.people) ? t.people : []))].sort();
+    /* union of the stored vocab and whatever the tasks actually use, so a
+       name typed on another device still shows up in the charts here */
+    const union = (stored, used) => {
+      const out = [], seen = new Set();
+      [].concat(Array.isArray(stored) ? stored : [], used).forEach((x) => {
+        if (!x) return;
+        const k = String(x).toLowerCase();
+        if (seen.has(k)) return;
+        seen.add(k); out.push(x);
+      });
+      return out;
+    };
+    CATEGORIES = union(v.categories, (d.tasks || []).map((t) => t.category).filter(Boolean));
+    PEOPLE = union(v.people, (d.tasks || []).flatMap((t) => Array.isArray(t.people) ? t.people : []));
   }
 
   const $ = (id) => document.getElementById(id);
@@ -1384,6 +1420,7 @@ body{
     try {
       const next = JSON.parse(JSON.stringify(doc));
       mutate(next);
+      rememberVocab(next);
       next.version = 1;
       next.updated = new Date().toISOString();
       const body = JSON.stringify(next, null, 2) + "\n";
@@ -1455,9 +1492,16 @@ body{
     if (!t.task || !String(t.task).trim()) e.push("The task needs a name.");
     if (!STATUSES.includes(t.status)) e.push("Status must be one of: " + STATUSES.join(", ") + ".");
     if (t.priority !== null && !PRIORITIES.includes(t.priority)) e.push("Priority must be one of: " + PRIORITIES.join(", ") + ", or blank.");
-    if (t.category !== null && !CATEGORIES.includes(t.category)) e.push("Category must be one of: " + CATEGORIES.join(", ") + ", or blank.");
+    /* Categories and people are yours to invent — new ones are remembered
+       rather than rejected. Still bounded, so a paste accident cannot write
+       a thousand-character name into the file. */
+    if (t.category !== null && (!String(t.category).trim() || String(t.category).length > 40))
+      e.push("Category must be 1 to 40 characters, or blank.");
     if (!Array.isArray(t.people)) e.push("People must be a list.");
-    else t.people.forEach((p) => { if (!PEOPLE.includes(p)) e.push("“" + p + "” is not one of the known people."); });
+    else {
+      if (t.people.length > 12) e.push("That is a lot of people — 12 at most.");
+      t.people.forEach((p) => { if (p.length > 40) e.push("“" + p.slice(0, 20) + "…” is too long for a name."); });
+    }
     if (t.due !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(t.due))) e.push("Due date must be a real date.");
     if (t.progress !== null && (!Number.isFinite(t.progress) || t.progress < 0 || t.progress > 100))
       e.push("Progress must be a number from 0 to 100, or blank.");
@@ -2031,8 +2075,11 @@ body{
     $("f-task").value = t ? (t.task || "") : "";
     segment($("f-status"), STATUSES, t ? t.status : "Not Started", false);
     segment($("f-priority"), PRIORITIES, t ? t.priority : null, false);
-    segment($("f-category"), CATEGORIES, t ? t.category : null, false);
-    segment($("f-people"), PEOPLE, t && Array.isArray(t.people) ? t.people : [], true);
+    /* the picker only offers categories already in use; anything new goes in
+       the text field below it and is remembered from then on */
+    segment($("f-category"), CATEGORIES, t && CATEGORIES.includes(t.category) ? t.category : null, false);
+    $("f-catnew").value = (t && t.category && !CATEGORIES.includes(t.category)) ? t.category : "";
+    $("f-people").value = t && Array.isArray(t.people) ? t.people.join(", ") : "";
     $("f-due").value = t && t.due ? t.due : "";
     $("f-prog").value = t && t.progress != null ? String(Math.round(Number(t.progress))) : "";
     $("f-wait").value = t && t.waitingOn ? t.waitingOn : "";
@@ -2043,14 +2090,28 @@ body{
   }
   function closeEditor() { $("scrim").classList.remove("on"); editing = null; }
 
+  /* "Kevin,  pang , Kevin" -> ["Kevin","pang"] */
+  function parsePeople(s) {
+    const out = [], seen = new Set();
+    String(s || "").split(/[,;\n]/).forEach((p) => {
+      const v = p.trim().replace(/\s+/g, " ");
+      if (!v) return;
+      const k = v.toLowerCase();
+      if (seen.has(k)) return;
+      seen.add(k); out.push(v);
+    });
+    return out;
+  }
+
   function formTask() {
     const due = $("f-due").value, prog = $("f-prog").value.trim();
+    const newCat = $("f-catnew").value.trim();
     return {
       task: $("f-task").value.trim(),
-      category: segValue($("f-category")),
+      category: newCat || segValue($("f-category")),
       priority: segValue($("f-priority")),
       status: segValue($("f-status")) || "Not Started",
-      people: segValues($("f-people")),
+      people: parsePeople($("f-people").value),
       due: due || null,
       waitingOn: $("f-wait").value.trim() || null,
       openQuestion: $("f-q").value.trim() || null,
