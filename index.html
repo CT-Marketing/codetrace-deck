@@ -774,6 +774,41 @@ body{
 .hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
 @media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
 
+/* ---------- week board ---------- */
+.weekbar{display:flex;gap:8px;align-items:center;padding:14px 18px 0;flex-wrap:wrap}
+.weekbar .wlabel{font-family:"Fredoka",sans-serif;font-size:16px;color:var(--ink);margin-right:auto}
+.weekwrap{display:grid;grid-template-columns:repeat(8,minmax(158px,1fr));gap:10px;
+  padding:14px 18px 18px;overflow-x:auto}
+@media (max-width:1240px){.weekwrap{min-width:max-content}}
+.wcol{background:var(--panel-2);border:1px solid var(--edge-soft);border-radius:16px;
+  padding:10px;min-height:190px;display:flex;flex-direction:column;gap:8px}
+.wcol.today{border-color:var(--accent);background:#FBF1E9}
+.wcol.pend{background:var(--c-none);border-color:var(--edge)}
+.wcol.over{outline:2px dashed var(--accent);outline-offset:-4px;background:#FBEEE4}
+.whead{display:flex;align-items:baseline;gap:7px}
+.whead .wd{font-family:"Fredoka",sans-serif;font-size:14px;color:var(--ink)}
+.whead .wsub{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-3)}
+.whead .wn{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);margin-left:auto}
+.wcard{background:var(--panel);border:1px solid var(--edge-soft);border-left:5px solid var(--edge);
+  border-radius:12px;padding:9px 10px;cursor:grab;font-size:13px}
+.wcard:active{cursor:grabbing}
+.wcard.dragging{opacity:.4}
+.wcard[data-cat="Branding"]{border-left-color:var(--c-brand-d)}
+.wcard[data-cat="Events"]{border-left-color:var(--c-event-d)}
+.wcard[data-cat="Partnerships"]{border-left-color:var(--c-partn-d)}
+.wcard[data-cat="Admin"]{border-left-color:var(--c-admin-d)}
+.wcard .wt{color:var(--ink);font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.wcard .wm{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px}
+.wcard .wr{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-3)}
+.wmove{margin-left:auto;border:1px solid var(--edge);background:var(--panel);border-radius:999px;
+  font-family:"JetBrains Mono",monospace;font-size:10px;padding:4px 9px;cursor:pointer;color:var(--ink-2)}
+.wmove:hover,.wmove:focus-visible{border-color:var(--ink);color:var(--ink)}
+.wpick{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--edge-soft)}
+.wpick button{font-family:"JetBrains Mono",monospace;font-size:10.5px;padding:5px 9px;border-radius:999px;
+  border:1px solid var(--edge);background:var(--panel);color:var(--ink-2);cursor:pointer}
+.wpick button:hover,.wpick button:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.wempty{font-size:12px;color:var(--ink-3);padding:4px 2px}
+
 /* ---------- responsibility tree ----------
    Connectors are drawn with pseudo-element borders rather than SVG, so the
    boxes size themselves to whatever text they hold. */
@@ -1048,8 +1083,9 @@ body{
 
   <nav class="tabs" role="tablist" aria-label="Views">
     <button role="tab" data-view="command" aria-selected="true"><span class="bnum" id="t-cmd">–</span>Command</button>
+    <button role="tab" data-view="week" aria-selected="false"><span class="bnum" id="t-week">–</span>Week</button>
     <button role="tab" data-view="today" aria-selected="false"><span class="bnum" id="t-today">–</span>Today</button>
-    <button role="tab" data-view="open" aria-selected="false"><span class="bnum" id="t-open">–</span>All open</button>
+    <button role="tab" data-view="open" aria-selected="false"><span class="bnum" id="t-open">–</span>Open</button>
     <button role="tab" data-view="blocked" aria-selected="false"><span class="bnum" id="t-blocked">–</span>Blocked</button>
     <button role="tab" data-view="ask" aria-selected="false"><span class="bnum" id="t-ask">–</span>Decide</button>
   </nav>
@@ -1130,6 +1166,19 @@ body{
 
     <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
       <div class="pbody" id="b-sys"></div></div>
+  </section>
+
+  <section class="view" id="v-week">
+    <div class="panel">
+      <div class="phead"><h2>Week board</h2><span class="count" id="c-week-b"></span></div>
+      <div class="weekbar">
+        <span class="wlabel" id="week-label">&nbsp;</span>
+        <button class="calnav" id="week-prev" type="button" aria-label="Previous week">‹</button>
+        <button class="calnav" id="week-now" type="button">This week</button>
+        <button class="calnav" id="week-next" type="button" aria-label="Next week">›</button>
+      </div>
+      <div class="pbody" id="b-week-board" style="padding:0"><div class="skel"></div></div>
+    </div>
   </section>
 
   <section class="view two" id="v-today">
@@ -1651,6 +1700,139 @@ body{
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
   }
 
+  /* ---------- week board ----------
+     The due date IS the column. Dropping a card on a day writes that date;
+     dropping it on Pending clears it. No new data model. */
+  let weekStart = null, dragRef = null;
+
+  const addDays = (iso, n) =>
+    new Date(Date.parse(iso + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
+  function mondayOf(iso) {
+    const d = new Date(Date.parse(iso + "T00:00:00Z"));
+    return addDays(iso, -(((d.getUTCDay() + 6) % 7)));
+  }
+  function weekInit() { if (!weekStart) weekStart = mondayOf(TODAY); }
+
+  function wcard(t) {
+    return '<div class="wcard" draggable="true" data-wref="' + esc(t.ref) + '"' +
+      (t.category ? ' data-cat="' + esc(t.category) + '"' : "") + ">" +
+      '<div class="wt">' + esc(t.task || "(untitled)") + "</div>" +
+      '<div class="wm"><span class="wr">#' + esc(t.ref) + "</span>" +
+      (t.priority === "Urgent Today" ? '<span class="chip status critical">URGENT</span>' : "") +
+      (t.status === "Waiting on Someone" ? '<span class="chip status warning">BLOCKED</span>' : "") +
+      '<button class="wmove" type="button" data-wmove="' + esc(t.ref) + '">MOVE</button>' +
+      "</div></div>";
+  }
+
+  function renderWeek() {
+    weekInit();
+    const open = rows.filter((r) => r.status !== "Done");
+    const days = [];
+    for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
+
+    const fmtD = (iso) => new Intl.DateTimeFormat("en-GB",
+      { timeZone: "UTC", weekday: "short" }).format(new Date(Date.parse(iso + "T00:00:00Z")));
+
+    $("week-label").textContent = shortDate(weekStart) + " – " + shortDate(days[6]) +
+      (weekStart === mondayOf(TODAY) ? "  ·  this week" : "");
+
+    let html = '<div class="weekwrap">';
+    days.forEach((iso) => {
+      const list = open.filter((t) => t.due === iso);
+      html += '<div class="wcol' + (iso === TODAY ? " today" : "") + '" data-wday="' + iso + '">' +
+        '<div class="whead"><span class="wd">' + fmtD(iso) + "</span>" +
+        '<span class="wsub">' + shortDate(iso) + "</span>" +
+        '<span class="wn">' + (list.length || "") + "</span></div>" +
+        (list.length ? list.map(wcard).join("") : '<div class="wempty">—</div>') + "</div>";
+    });
+    const pending = open.filter((t) => !t.due);
+    html += '<div class="wcol pend" data-wday="pending">' +
+      '<div class="whead"><span class="wd">Pending</span><span class="wsub">no date</span>' +
+      '<span class="wn">' + (pending.length || "") + "</span></div>" +
+      (pending.length ? pending.map(wcard).join("")
+        : '<div class="wempty">Everything open has a date.</div>') + "</div></div>";
+
+    const dated = open.filter((t) => t.due && days.includes(t.due)).length;
+    $("c-week-b").textContent = dated + " scheduled · " + pending.length + " pending";
+    $("t-week").textContent = dated;
+    $("b-week-board").innerHTML = html;
+  }
+
+  function weekShift(n) { weekInit(); weekStart = addDays(weekStart, n * 7); renderWeek(); }
+  $("week-prev").addEventListener("click", () => weekShift(-1));
+  $("week-next").addEventListener("click", () => weekShift(1));
+  $("week-now").addEventListener("click", () => { weekStart = mondayOf(TODAY); renderWeek(); });
+
+  /* moving a card writes its due date — that is the whole mechanism */
+  async function setDue(ref, iso) {
+    try {
+      await write((d) => {
+        const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+        if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+        d.tasks[i].due = iso;
+      }, iso ? "Schedule #" + ref + " for " + iso : "Clear the date on #" + ref);
+    } catch (e) {
+      conn(hasData ? "live" : "down", hasData ? "live" : "error");
+      if (e && e.status === 401) { showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { conflictBanner(); return; }
+      banner("That task did not move. " + saveError(e), "", false);
+    }
+  }
+
+  /* desktop: drag and drop */
+  document.addEventListener("dragstart", (e) => {
+    const c = e.target.closest("[data-wref]"); if (!c) return;
+    dragRef = c.dataset.wref;
+    c.classList.add("dragging");
+    if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragRef); }
+  });
+  document.addEventListener("dragend", () => {
+    dragRef = null;
+    document.querySelectorAll(".wcard.dragging").forEach((x) => x.classList.remove("dragging"));
+    document.querySelectorAll(".wcol.over").forEach((x) => x.classList.remove("over"));
+  });
+  document.addEventListener("dragover", (e) => {
+    const col = e.target.closest("[data-wday]"); if (!col || !dragRef) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    document.querySelectorAll(".wcol.over").forEach((x) => { if (x !== col) x.classList.remove("over"); });
+    col.classList.add("over");
+  });
+  document.addEventListener("drop", (e) => {
+    const col = e.target.closest("[data-wday]"); if (!col || !dragRef) return;
+    e.preventDefault();
+    const ref = dragRef; dragRef = null;
+    col.classList.remove("over");
+    setDue(ref, col.dataset.wday === "pending" ? null : col.dataset.wday);
+  });
+
+  /* phone: Safari has no drag and drop, so every card carries a day picker */
+  document.addEventListener("click", (e) => {
+    const mv = e.target.closest("[data-wmove]");
+    if (mv) {
+      const card = mv.closest(".wcard");
+      const existing = card.querySelector(".wpick");
+      document.querySelectorAll(".wpick").forEach((p) => p.remove());
+      if (existing) return;
+      weekInit();
+      let btns = "";
+      for (let i = 0; i < 7; i++) {
+        const iso = addDays(weekStart, i);
+        btns += '<button type="button" data-wset="' + esc(mv.dataset.wmove) + "|" + iso + '">' +
+          new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short" })
+            .format(new Date(Date.parse(iso + "T00:00:00Z"))) + "</button>";
+      }
+      btns += '<button type="button" data-wset="' + esc(mv.dataset.wmove) + '|">No date</button>';
+      card.insertAdjacentHTML("beforeend", '<div class="wpick">' + btns + "</div>");
+      return;
+    }
+    const st = e.target.closest("[data-wset]");
+    if (st) {
+      const parts = st.dataset.wset.split("|");
+      setDue(parts[0], parts[1] || null);
+    }
+  });
+
   /* ---------- responsibility tree ----------
      Read from doc.map in the private data file, so the org structure is
      never part of the public page. Each box counts the open tasks whose
@@ -2098,6 +2280,7 @@ body{
 
     renderCommand(open, done, todays, week, waiting, questions);
     renderCalendar();
+    renderWeek();
     renderMap();
     loadActivity();
     renderAll(open);
@@ -2148,10 +2331,10 @@ body{
   }
 
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
-                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map"];
+                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map", "b-week-board"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
-    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-today", "t-open", "t-blocked", "t-ask"]
+    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-week", "t-today", "t-open", "t-blocked", "t-ask"]
       .forEach((id) => { $(id).textContent = "–"; });
     $("hud-gauges").innerHTML = ""; $("hud-strip").innerHTML = ""; $("c-cmd").textContent = "";
   }
