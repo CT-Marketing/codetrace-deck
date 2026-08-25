@@ -711,6 +711,69 @@ body{font-size:16px;line-height:1.55}
 .dot{background:var(--ink-3)}
 .dot.live{background:var(--good)} .dot.stale{background:var(--warning)} .dot.down{background:var(--critical)}
 
+/* ============ COLOUR & CHARACTER ============
+   Category colour was rejected in the original spec, but only because it
+   failed contrast on the near-black ground. On beige every pastel below
+   gives 13:1 with the ink text, so it is back — and it carries meaning
+   rather than being decoration. */
+:root{
+  --c-brand:#F9DCE6; --c-brand-d:#B03A5B;
+  --c-event:#D8E7F6; --c-event-d:#1F5C8C;
+  --c-partn:#D9EEDC; --c-partn-d:#2F6B3A;
+  --c-admin:#FBE7C9; --c-admin-d:#8A5A00;
+  --c-none:#ECE5D8;  --c-none-d:#6B5B48;
+  --c-lilac:#E7DFF6; --c-rose:#FBDDDD;
+}
+/* a warm wash so the page is not one flat colour */
+body{
+  background:
+    radial-gradient(900px 520px at 10% -6%, rgba(251,231,201,.75) 0%, rgba(251,231,201,0) 60%),
+    radial-gradient(820px 600px at 96% 4%, rgba(249,220,230,.62) 0%, rgba(249,220,230,0) 58%),
+    radial-gradient(700px 500px at 60% 100%, rgba(216,231,246,.45) 0%, rgba(216,231,246,0) 60%),
+    var(--ground);
+  background-attachment:fixed;
+}
+
+/* task rows wear their category */
+.row{border-left:5px solid transparent}
+.row[data-cat="Branding"]{border-left-color:var(--c-brand-d)}
+.row[data-cat="Events"]{border-left-color:var(--c-event-d)}
+.row[data-cat="Partnerships"]{border-left-color:var(--c-partn-d)}
+.row[data-cat="Admin"]{border-left-color:var(--c-admin-d)}
+.chip.cat{border:0;font-weight:700}
+.chip.cat[data-c="Branding"]{background:var(--c-brand);color:var(--c-brand-d)}
+.chip.cat[data-c="Events"]{background:var(--c-event);color:var(--c-event-d)}
+.chip.cat[data-c="Partnerships"]{background:var(--c-partn);color:var(--c-partn-d)}
+.chip.cat[data-c="Admin"]{background:var(--c-admin);color:var(--c-admin-d)}
+
+/* stat tiles get their own colour instead of five identical white boxes */
+.stat:nth-child(1){background:var(--c-none)}
+.stat:nth-child(2){background:var(--c-rose)}
+.stat:nth-child(3){background:var(--c-admin)}
+.stat:nth-child(4){background:var(--c-lilac)}
+.stat:nth-child(5){background:var(--c-partn)}
+.stat .l{color:var(--ink-2)}
+
+/* panel headers, tinted in rotation */
+.panel:nth-of-type(1) .phead{background:linear-gradient(180deg,var(--c-admin),var(--panel))}
+.panel:nth-of-type(2) .phead{background:linear-gradient(180deg,var(--c-brand),var(--panel))}
+.panel:nth-of-type(3) .phead{background:linear-gradient(180deg,var(--c-event),var(--panel))}
+.panel:nth-of-type(4) .phead{background:linear-gradient(180deg,var(--c-partn),var(--panel))}
+.panel:nth-of-type(5) .phead{background:linear-gradient(180deg,var(--c-lilac),var(--panel))}
+
+/* the greeting */
+.hello{display:flex;align-items:center;gap:16px;margin-top:var(--gap);
+  padding:20px 22px;border-radius:22px;
+  background:linear-gradient(120deg,var(--c-brand) 0%,var(--c-admin) 55%,var(--c-event) 100%);
+  box-shadow:0 3px 14px rgba(120,95,65,.10)}
+.hello .hi-mark{width:58px;height:58px;flex:none;display:block;
+  filter:drop-shadow(0 3px 6px rgba(120,95,65,.28))}
+.hello .hi-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.hello .hi-1{font-family:"Fredoka",sans-serif;font-size:clamp(20px,3.4vw,28px);
+  font-weight:600;color:var(--ink);line-height:1.15}
+.hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
+@media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
+
 /* ---------- calendar ---------- */
 .calnav{font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1;
   background:var(--panel);border:1px solid var(--edge);color:var(--ink-2);
@@ -871,6 +934,14 @@ body{font-size:16px;line-height:1.55}
     <div class="ba">
       <button class="btn" id="banner-reload" type="button">Reload</button>
       <button class="btn" id="banner-x" type="button">Dismiss</button>
+    </div>
+  </div>
+
+  <div class="hello">
+    <img class="hi-mark" src="blossom.png" alt="" width="512" height="512">
+    <div class="hi-txt">
+      <span class="hi-1" id="hi-greet">Hello</span>
+      <span class="hi-2" id="hi-sub">Loading your board&hellip;</span>
     </div>
   </div>
 
@@ -1374,7 +1445,8 @@ body{font-size:16px;line-height:1.55}
   function taskRow(t, o) {
     o = o || {};
     let m = "";
-    if (t.category) m += '<span class="chip">' + esc(String(t.category).toUpperCase()) + "</span>";
+    if (t.category) m += '<span class="chip cat" data-c="' + esc(t.category) + '">' +
+      esc(String(t.category).toUpperCase()) + "</span>";
     if (t.priority === "Urgent Today") m += '<span class="chip status critical">URGENT</span>';
     else if (t.priority) m += '<span class="chip">' + esc(String(t.priority).toUpperCase()) + "</span>";
     if (t.status && t.status !== "Not Started")
@@ -1385,7 +1457,7 @@ body{font-size:16px;line-height:1.55}
     if (o.showQuestion && t.openQuestion) extra += '<div class="qtext">' + esc(t.openQuestion) + "</div>";
     if (o.showWaiting && t.waitingOn) extra += '<div class="wtext">' + esc(t.waitingOn) + "</div>";
     const isDone = t.status === "Done";
-    return '<div class="row">' +
+    return '<div class="row"' + (t.category ? ' data-cat="' + esc(t.category) + '"' : "") + ">" +
       '<button class="tick' + (isDone ? " on" : "") + '" data-tick="' + esc(t.ref) + '" type="button" aria-label="' +
       (isDone ? "Mark not started" : "Mark done") + '">' + (isDone ? "&#10003;" : "") + "</button>" +
       '<button class="rmain" data-edit="' + esc(t.ref) + '" type="button">' +
@@ -1713,6 +1785,21 @@ body{font-size:16px;line-height:1.55}
     renderCommand(open, done, todays, week, waiting, questions);
     renderCalendar();
     renderAll(open);
+
+    /* greeting — reads the clock and the board, never invents cheer */
+    const hr = Number(new Intl.DateTimeFormat("en-GB",
+      { timeZone: TZ, hour: "2-digit", hour12: false }).format(new Date()));
+    $("hi-greet").textContent =
+      hr < 5 ? "Still up?" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+    const overdueN = open.filter((r) => r.due && dayDiff(r.due, TODAY) < 0).length;
+    let sub;
+    if (!open.length) sub = "Nothing open. The board is clear.";
+    else if (overdueN) sub = overdueN + (overdueN === 1 ? " task is" : " tasks are") + " overdue · " +
+      todays.length + " due now · " + open.length + " open";
+    else if (todays.length) sub = todays.length + (todays.length === 1 ? " task needs" : " tasks need") +
+      " you today · " + open.length + " open";
+    else sub = "Nothing due today · " + open.length + " open · " + questions.length + " waiting on a decision";
+    $("hi-sub").textContent = sub;
 
     $("foot-store").textContent = "Store: GitHub · " + REPO;
     $("foot-upd").textContent = "Last saved " + stamp(doc && doc.updated);
