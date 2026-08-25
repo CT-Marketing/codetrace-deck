@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
 <style>
 /* Light palette. Every value below was contrast-checked against the cream
@@ -40,13 +40,13 @@
   --glass:#FFFFFF;
   --glass-lit:#F7F9FF;
   /* the chamfered outline every framed surface shares */
-  --cut:polygon(var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer));
+  --cut:inset(0 round 20px);
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   margin:0;background:var(--ground);color:var(--ink);
-  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:15px;line-height:1.5;overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
 }
@@ -145,9 +145,9 @@ body{
   grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
   box-shadow:0 0 30px -16px rgba(1,8,40,.5)}
 .stat{background:var(--glass);padding:11px 12px;display:flex;flex-direction:column;gap:3px}
-/* Anton for the big counters — condensed display weight, and it carries
-   size well without needing any glow to feel deliberate. */
-.stat .n{font-family:"Anton",sans-serif;font-weight:400;
+/* Fredoka for the big counters — rounded and friendly rather than
+   condensed and severe. */
+.stat .n{font-family:"Fredoka",sans-serif;font-weight:400;
   font-variant-numeric:tabular-nums;font-size:21px;line-height:1.1;letter-spacing:-.02em}
 .stat .l{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
 .is-critical{color:var(--critical)} .is-warning{color:var(--warning)}
@@ -205,7 +205,7 @@ body{
 
 .filterbar{padding:10px 14px;border-bottom:1px solid var(--edge-soft)}
 .filterbar input{width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
-  font-family:"IBM Plex Sans",sans-serif;font-size:15px;padding:9px 11px;min-height:40px}
+  font-family:"Nunito",sans-serif;font-size:15px;padding:9px 11px;min-height:40px}
 .filterbar input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 
 /* rows */
@@ -401,7 +401,7 @@ body{
   text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
 .fld input[type=text],.fld input[type=date],.fld input[type=number],.fld input[type=password],.fld textarea{
   width:100%;background:var(--ground);border:1px solid var(--edge);color:var(--ink);
-  font-family:"IBM Plex Sans",sans-serif;font-size:16px;padding:10px 11px;min-height:44px}
+  font-family:"Nunito",sans-serif;font-size:16px;padding:10px 11px;min-height:44px}
 .fld textarea{min-height:70px;resize:vertical}
 .fld input:focus,.fld textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent-dim)}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
@@ -480,7 +480,7 @@ body.arriving .wrap{animation:arrive .55s cubic-bezier(.16,1,.3,1) backwards;tra
 }
 .gate-clock{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;flex:none}
 @media (min-width:900px){.gate-clock{align-items:flex-end;text-align:right}}
-.gate-clock .gt{font-family:"Anton",sans-serif;font-size:clamp(52px,8.5vw,92px);line-height:.92;
+.gate-clock .gt{font-family:"Fredoka",sans-serif;font-size:clamp(52px,8.5vw,92px);line-height:.92;
   letter-spacing:.01em;color:#fff;font-variant-numeric:tabular-nums}
 .gate-clock .rule{width:64px;height:3px;background:#6FFF00}
 @media (min-width:900px){.gate-clock .rule{width:88px}}
@@ -519,7 +519,7 @@ body.arriving .wrap{animation:arrive .55s cubic-bezier(.16,1,.3,1) backwards;tra
   letter-spacing:.2em;text-transform:uppercase;margin:0 0 24px;color:#fff}
 .gate-field{width:100%;border-radius:999px;border:0;padding:14px 20px;min-height:50px;
   background:rgba(255,255,255,.07);color:#fff;text-align:center;
-  font-family:"IBM Plex Sans",sans-serif;font-size:16px;outline:none;
+  font-family:"Nunito",sans-serif;font-size:16px;outline:none;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.13)}
 .gate-field::placeholder{color:rgba(255,255,255,.40);letter-spacing:.04em}
 .gate-field:focus{box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 0 0 1px rgba(1,8,40,.6),
@@ -583,7 +583,7 @@ body.arriving .wrap{animation:arrive .55s cubic-bezier(.16,1,.3,1) backwards;tra
    effectively invisible. */
 
 /* display type */
-.brand h1,.phead h2,.coretxt .ct,.gaugeval .v,.stat .n{font-family:"Anton",sans-serif;font-weight:400}
+.brand h1,.phead h2,.coretxt .ct,.gaugeval .v,.stat .n{font-family:"Fredoka",sans-serif;font-weight:400}
 .brand h1{letter-spacing:.06em;font-size:clamp(20px,3.6vw,27px)}
 .phead h2{letter-spacing:.07em;font-size:16px}
 .stat .n{letter-spacing:.01em;font-size:34px}
@@ -711,6 +711,90 @@ body{font-size:16px;line-height:1.55}
 .dot{background:var(--ink-3)}
 .dot.live{background:var(--good)} .dot.stale{background:var(--warning)} .dot.down{background:var(--critical)}
 
+/* ---------- calendar ---------- */
+.calnav{font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1;
+  background:var(--panel);border:1px solid var(--edge);color:var(--ink-2);
+  border-radius:999px;padding:7px 12px;cursor:pointer;min-height:32px}
+.calnav:hover,.calnav:focus-visible{border-color:var(--ink);color:var(--ink)}
+#cal-prev,#cal-next{padding:7px 13px;font-size:15px}
+#cal-prev{margin-left:auto}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:16px}
+.caldow{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:center;padding-bottom:4px}
+.calday{position:relative;border:1px solid var(--edge-soft);border-radius:14px;background:var(--panel);
+  min-height:62px;padding:7px 8px 6px;display:flex;flex-direction:column;gap:4px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit}
+.calday:hover{border-color:var(--accent)}
+.calday:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.calday.pad{background:transparent;border-color:transparent;cursor:default}
+.calday.today{border-color:var(--accent);border-width:2px;background:#FBF1E9}
+.calday.sel{background:var(--accent);border-color:var(--accent)}
+.calday.sel .cn,.calday.sel .cc{color:var(--on-accent)}
+.calday .cn{font-family:"Fredoka",sans-serif;font-size:15px;line-height:1;color:var(--ink)}
+.calday.pad .cn{color:#BCAE99}
+.calday .cc{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);margin-top:auto}
+.caldots{display:flex;gap:3px;flex-wrap:wrap;margin-top:auto}
+.caldot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.caldot.hot{background:var(--critical)} .caldot.done{background:var(--good)}
+.calday.sel .caldot{background:var(--on-accent)}
+.calsel{border-top:1px solid var(--edge-soft);padding:4px 0 0}
+@media (max-width:560px){
+  .calgrid{gap:4px;padding:12px}
+  .calday{min-height:52px;padding:6px}
+  .calday .cn{font-size:13px}
+  .calday .cc{display:none}
+}
+
+/* ============ SOFT PASS ============
+   Rounded corners, warm diffuse shadows, no tick rulers, thicker rings with
+   rounded caps. The technical detailing was the "edgy" part. */
+.rail,.panel,.feed,.tabs,.gatebox{border-radius:20px}
+.rail,.panel,.feed,.tabs{box-shadow:0 3px 14px rgba(120,95,65,.10),0 1px 3px rgba(120,95,65,.07)}
+.rail::before,.panel::before,.feed::before,.tabs::before{background:rgba(36,28,20,.10)}
+.phead{border-radius:20px 20px 0 0;background:linear-gradient(180deg,#F7EFE2,#FCF9F3);
+  border-bottom:1px solid var(--edge-soft)}
+.panel{overflow:hidden}
+.feed{overflow:hidden;gap:0;background:var(--panel)}
+.stat{border-right:1px solid var(--edge-soft)}
+.stat:last-child{border-right:0}
+.tabs{overflow:hidden}
+.tabs button{border-right:1px solid var(--edge-soft)}
+.tabs button[aria-selected=true]{border-radius:0}
+.tabs button[aria-selected=true]::after{display:none}
+
+/* pills and rounded controls */
+.btn{border-radius:999px;padding:10px 16px}
+.filterbar input,.fld input,.fld textarea{border-radius:14px}
+.chip{border-radius:999px}
+.tick{border-radius:9px}
+.sheet{border-radius:22px 22px 0 0}
+@media (min-width:720px){.sheet{border-radius:22px}}
+.seg button{border-radius:999px}
+.hudcell{background:var(--panel)}
+.hudstrip{border-radius:0 0 20px 20px;overflow:hidden;background:var(--edge-soft)}
+.banner{border-radius:18px}
+.row{border-bottom:1px solid var(--edge-soft)}
+
+/* rings: thicker, rounded, no ticks, softer track */
+.ringfill{stroke-linecap:round}
+.gaugering svg circle{stroke-linecap:round}
+
+/* the clock core, softened */
+.core::before{background:radial-gradient(circle at 34% 26%,#4A3A2C,#2C2219 74%);
+  box-shadow:0 14px 34px rgba(90,70,50,.30)}
+.orbit{border-style:solid;border-color:rgba(163,58,30,.16)}
+.orbit.o2{border-color:rgba(163,58,30,.10)}
+.orbit.o3{display:none}
+.sweep{display:none}
+.coretxt .ct{font-size:52px;letter-spacing:.005em}
+
+/* a little warmth per panel */
+.panel:nth-of-type(odd) .phead{background:linear-gradient(180deg,#F8F0E4,#FCF9F3)}
+
+/* Blossom keeps you company in the top bar */
+.brand .mark{width:32px;height:32px;flex:none;display:block;margin-right:2px}
+.brand{gap:8px;align-items:center}
+
 @media (prefers-reduced-motion:no-preference){
   body.intro .rail{animation:rise .34s ease-out backwards}
   body.intro .feed{animation:rise .34s ease-out .04s backwards}
@@ -773,7 +857,7 @@ body{font-size:16px;line-height:1.55}
 <div class="wrap">
 
   <header class="rail">
-    <div class="brand"><h1>Octopus Prime</h1><span class="sub">CODETRACE</span></div>
+    <div class="brand"><img class="mark" src="blossom.png" alt="" width="512" height="512"><h1>Octopus Prime</h1><span class="sub">CODETRACE</span></div>
     <div class="clock"><span class="t" id="clock-t">--:--</span><span class="d" id="clock-d">&nbsp;</span></div>
     <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting</span></div>
     <button class="btn primary" id="new-task" type="button">+ New task</button>
@@ -848,6 +932,17 @@ body{font-size:16px;line-height:1.55}
         <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
       <div class="panel"><div class="phead"><h2>Load by category</h2><span class="count" id="c-cat"></span></div>
         <div class="pbody" id="b-cat"><div class="skel"></div></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead">
+        <h2 id="cal-title">Calendar</h2>
+        <span class="count" id="c-cal"></span>
+        <button class="calnav" id="cal-prev" type="button" aria-label="Previous month">‹</button>
+        <button class="calnav" id="cal-today" type="button">Today</button>
+        <button class="calnav" id="cal-next" type="button" aria-label="Next month">›</button>
+      </div>
+      <div class="pbody" id="b-cal"><div class="skel"></div></div>
     </div>
 
     <div class="panel"><div class="phead"><h2>7-day horizon</h2><span class="count" id="c-hz"></span></div>
@@ -1335,14 +1430,14 @@ body{font-size:16px;line-height:1.55}
   }
 
   function gauge(label, value, sub, pct, tone) {
-    return '<div class="gauge"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 104, 7, 40) +
+    return '<div class="gauge"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 104, 11, 0) +
       '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
   }
 
   function miniRing(name, value, sub, pct, tone) {
-    return '<div class="miniring"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 74, 5, 24) +
+    return '<div class="miniring"><div class="gaugering ring-' + tone + '">' + ringSVG(pct, 78, 9, 0) +
       '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
       '<div class="nm">' + esc(name) + "</div></div>";
@@ -1359,11 +1454,9 @@ body{font-size:16px;line-height:1.55}
   (function coreTicks() {
     const g = $("core-ticks"); if (!g) return;
     let s = "";
-    for (let i = 0; i < 60; i++) {
-      const long = i % 5 === 0;
-      s += '<line x1="130" y1="12" x2="130" y2="' + (12 + (long ? 9 : 5)) +
-           '" transform="rotate(' + (i * 6) + ' 130 130)" stroke="currentColor" stroke-width="' +
-           (long ? 1.5 : .8) + '" opacity="' + (long ? .5 : .2) + '"/>';
+    for (let i = 0; i < 12; i++) {
+      s += '<circle cx="130" cy="16" r="2.6" transform="rotate(' + (i * 30) +
+           ' 130 130)" fill="currentColor" opacity="' + (i % 3 === 0 ? .75 : .32) + '"/>';
     }
     g.innerHTML = s;
   })();
@@ -1453,6 +1546,92 @@ body{font-size:16px;line-height:1.55}
       : ringGrid(ppl);
   }
 
+  /* ---------- calendar ----------
+     Month grid over the due dates already in your tasks. Clicking a day
+     lists what falls on it; there is no new data behind this. */
+  let calYear = null, calMonth = null, calSel = null;
+
+  const MONTHS = ["January","February","March","April","May","June",
+                  "July","August","September","October","November","December"];
+  const pad2 = (n) => (n < 10 ? "0" + n : "" + n);
+  const isoOf = (y, m, d) => y + "-" + pad2(m + 1) + "-" + pad2(d);
+
+  function renderCalendar() {
+    if (calYear === null) {
+      const p = TODAY.split("-");
+      calYear = Number(p[0]); calMonth = Number(p[1]) - 1;
+    }
+    const byDay = new Map();
+    rows.forEach((t) => {
+      if (!t.due) return;
+      if (!byDay.has(t.due)) byDay.set(t.due, []);
+      byDay.get(t.due).push(t);
+    });
+
+    $("cal-title").textContent = MONTHS[calMonth] + " " + calYear;
+    const monthTasks = rows.filter((t) => t.due && t.due.slice(0, 7) === calYear + "-" + pad2(calMonth + 1));
+    $("c-cal").textContent = monthTasks.length ? monthTasks.length + " dated" : "";
+
+    /* Monday-first grid */
+    const first = new Date(Date.UTC(calYear, calMonth, 1));
+    const lead = (first.getUTCDay() + 6) % 7;
+    const days = new Date(Date.UTC(calYear, calMonth + 1, 0)).getUTCDate();
+
+    let g = '<div class="calgrid">' +
+      ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+        .map((d) => '<div class="caldow">' + d + "</div>").join("");
+    for (let i = 0; i < lead; i++) g += '<div class="calday pad"></div>';
+    for (let d = 1; d <= days; d++) {
+      const iso = isoOf(calYear, calMonth, d);
+      const list = byDay.get(iso) || [];
+      const openHere = list.filter((t) => t.status !== "Done");
+      const cls = "calday" + (iso === TODAY ? " today" : "") + (iso === calSel ? " sel" : "");
+      let dots = "";
+      list.slice(0, 6).forEach((t) => {
+        const k = t.status === "Done" ? " done" : (dayDiff(iso, TODAY) <= 2 ? " hot" : "");
+        dots += '<span class="caldot' + k + '"></span>';
+      });
+      g += '<button type="button" class="' + cls + '" data-day="' + iso + '">' +
+        '<span class="cn">' + d + "</span>" +
+        (dots ? '<span class="caldots">' + dots + "</span>" : "") +
+        (openHere.length ? '<span class="cc">' + openHere.length + " open</span>" : "") +
+        "</button>";
+    }
+    g += "</div>";
+
+    /* what falls on the chosen day */
+    let sel = "";
+    if (calSel) {
+      const list = (byDay.get(calSel) || []).slice()
+        .sort((a, b) => (a.status === "Done") - (b.status === "Done") || a.ref - b.ref);
+      sel = '<div class="calsel">' + (list.length
+        ? list.map((t) => taskRow(t, { showWaiting: true })).join("")
+        : ok("Nothing is due on " + esc(shortDate(calSel)) + ".")) + "</div>";
+    }
+    $("b-cal").innerHTML = g + sel;
+  }
+
+  function calShift(n) {
+    const m = calMonth + n;
+    calYear += Math.floor(m / 12);
+    calMonth = ((m % 12) + 12) % 12;
+    calSel = null;
+    renderCalendar();
+  }
+  $("cal-prev").addEventListener("click", () => calShift(-1));
+  $("cal-next").addEventListener("click", () => calShift(1));
+  $("cal-today").addEventListener("click", () => {
+    const p = TODAY.split("-");
+    calYear = Number(p[0]); calMonth = Number(p[1]) - 1; calSel = TODAY;
+    renderCalendar();
+  });
+  document.addEventListener("click", (e) => {
+    const c = e.target.closest("[data-day]");
+    if (!c || !hasData) return;
+    calSel = (calSel === c.dataset.day) ? null : c.dataset.day;
+    renderCalendar();
+  });
+
   function render() {
     const open = rows.filter((r) => r.status !== "Done");
     const done = rows.filter((r) => r.status === "Done");
@@ -1518,7 +1697,7 @@ body{font-size:16px;line-height:1.55}
     $("b-big").innerHTML = bigs.length
       ? '<div class="bigrings">' + bigs.map((b) => {
           const tone = b.pct >= 1 ? "good" : b.pct > 0 ? "accent" : "warning";
-          return '<div class="bigring"><div class="gaugering ring-' + tone + '">' + ringSVG(b.pct, 92, 6, 30) +
+          return '<div class="bigring"><div class="gaugering ring-' + tone + '">' + ringSVG(b.pct, 92, 10, 0) +
             '<div class="gaugeval"><span class="v" style="font-size:17px">' + esc(b.mid) + '</span>' +
             '<span class="s">' + esc(b.sub) + "</span></div></div>" +
             '<div class="nm">' + esc(b.name) + "</div></div>";
@@ -1526,6 +1705,7 @@ body{font-size:16px;line-height:1.55}
       : warn("No big thing set up yet. Type a <b>Progress %</b> on any task and a ring appears here.");
 
     renderCommand(open, done, todays, week, waiting, questions);
+    renderCalendar();
     renderAll(open);
 
     $("foot-store").textContent = "Store: GitHub · " + REPO;
@@ -1548,7 +1728,7 @@ body{font-size:16px;line-height:1.55}
   }
 
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
-                  "b-prio", "b-cat", "b-hz", "b-ppl"];
+                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
     ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-today", "t-open", "t-blocked", "t-ask"]
