@@ -774,6 +774,19 @@ body{
 .hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
 @media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
 
+/* ---------- done log ---------- */
+.dlog{padding:6px 0 12px;max-height:420px;overflow-y:auto}
+.dday{display:flex;align-items:baseline;gap:10px;padding:12px 17px 7px;position:sticky;top:0;
+  background:var(--panel);border-bottom:1px solid var(--edge-soft);z-index:1}
+.dday .dd{font-family:"Fredoka",sans-serif;font-size:14px;color:var(--ink)}
+.dday .dw{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3)}
+.dday .dc{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--good)}
+.ditem{display:flex;gap:12px;align-items:baseline;padding:9px 17px;border-bottom:1px solid var(--edge-soft)}
+.ditem .dt{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--good);flex:none;
+  font-variant-numeric:tabular-nums;min-width:44px}
+.ditem .dn{flex:1;min-width:0;font-size:14.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.ditem .dr{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);flex:none}
+
 /* ---------- tenure ---------- */
 .tenure{padding:24px 20px;display:flex;flex-direction:column;gap:5px}
 .tenure .tv{font-family:"Fredoka",sans-serif;font-size:clamp(38px,7vw,54px);line-height:1;color:var(--accent)}
@@ -1144,6 +1157,9 @@ body{
 
     <div class="panel"><div class="phead"><h2>What I look after</h2><span class="count" id="c-map"></span></div>
       <div class="pbody" id="b-map"><div class="skel"></div></div></div>
+
+    <div class="panel"><div class="phead"><h2>Done log</h2><span class="count" id="c-done-log"></span></div>
+      <div class="pbody" id="b-done-log" style="padding:0"><div class="skel"></div></div></div>
 
     <div class="panel"><div class="phead"><h2>Activity</h2><span class="count" id="c-act"></span></div>
       <div class="pbody" id="b-act"><div class="skel"></div></div></div>
@@ -1710,6 +1726,58 @@ body{
       '<div class="gaugeval"><span class="v">' + esc(value) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + "</span>" : "") + "</div></div>" +
       '<div class="gaugelbl">' + esc(label) + "</div></div>";
+  }
+
+  /* ---------- done log ----------
+     Grouped by the day you finished each thing. Times come from doneAt,
+     stamped at the moment a task is ticked. Anything finished before that
+     field existed says so rather than guessing a time. */
+  function renderDone() {
+    const done = rows.filter((r) => r.status === "Done");
+    if (!done.length) {
+      $("c-done-log").textContent = "";
+      $("b-done-log").innerHTML = ok("Nothing finished yet. Tick something off and it appears here.");
+      return;
+    }
+    const dayOf = (iso) => new Intl.DateTimeFormat("en-CA",
+      { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+    const timeOf = (iso) => new Intl.DateTimeFormat("en-GB",
+      { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+
+    const groups = new Map(), undatedDone = [];
+    done.forEach((t) => {
+      if (!t.doneAt || isNaN(Date.parse(t.doneAt))) { undatedDone.push(t); return; }
+      const d = dayOf(t.doneAt);
+      if (!groups.has(d)) groups.set(d, []);
+      groups.get(d).push(t);
+    });
+
+    const days = [...groups.keys()].sort().reverse();
+    let html = "";
+    days.forEach((d) => {
+      const list = groups.get(d).sort((a, b) => Date.parse(b.doneAt) - Date.parse(a.doneAt));
+      const label = d === TODAY ? "Today"
+        : d === addDays(TODAY, -1) ? "Yesterday"
+        : new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" })
+            .format(new Date(Date.parse(d + "T00:00:00Z")));
+      html += '<div class="dday"><span class="dd">' + esc(label) + "</span>" +
+        '<span class="dw">' + esc(shortDate(d)) + "</span>" +
+        '<span class="dc">' + list.length + " done</span></div>" +
+        list.map((t) => '<div class="ditem"><span class="dt">' + esc(timeOf(t.doneAt)) + "</span>" +
+          '<span class="dn">' + esc(t.task || "(untitled)") + "</span>" +
+          '<span class="dr">#' + esc(t.ref) + "</span></div>").join("");
+    });
+    if (undatedDone.length) {
+      html += '<div class="dday"><span class="dd">Before this was tracked</span>' +
+        '<span class="dc">' + undatedDone.length + " done</span></div>" +
+        undatedDone.map((t) => '<div class="ditem"><span class="dt">—</span>' +
+          '<span class="dn">' + esc(t.task || "(untitled)") + "</span>" +
+          '<span class="dr">#' + esc(t.ref) + "</span></div>").join("");
+    }
+    const todayN = (groups.get(TODAY) || []).length;
+    $("c-done-log").textContent = todayN ? todayN + " today · " + done.length + " all time"
+      : done.length + " all time";
+    $("b-done-log").innerHTML = '<div class="dlog">' + html + "</div>";
   }
 
   /* ---------- tenure ----------
@@ -2335,6 +2403,7 @@ body{
     renderCalendar();
     renderWeek();
     renderTenure();
+    renderDone();
     renderMap();
     loadActivity();
     renderAll(open);
@@ -2385,7 +2454,7 @@ body{
   }
 
   const PANELS = ["b-today", "b-week", "b-wait", "b-q", "b-big", "b-all",
-                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map", "b-week-board", "b-ten"];
+                  "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal", "b-status", "b-act", "b-map", "b-week-board", "b-ten", "b-done-log"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
     ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-week", "t-today", "t-open", "t-blocked", "t-ask"]
@@ -2483,7 +2552,12 @@ body{
         await write((d) => {
           const i = d.tasks.findIndex((r) => String(r.ref) === String(editedRef));
           if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+          const was = d.tasks[i].status, nowDone = t.status === "Done";
           d.tasks[i] = Object.assign({}, d.tasks[i], t, { ref: d.tasks[i].ref, subtasks: d.tasks[i].subtasks || [] });
+          /* only stamp on the transition, so re-saving a finished task does
+             not keep moving its completion time forward */
+          if (nowDone && was !== "Done") d.tasks[i].doneAt = new Date().toISOString();
+          if (!nowDone) d.tasks[i].doneAt = null;
         }, "Update #" + editedRef);
       } else {
         await write((d) => {
@@ -2523,6 +2597,9 @@ body{
         const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
         if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
         d.tasks[i].status = next;
+        /* stamp when it was finished, so the done log can show a real time
+           rather than being reconstructed from commit messages later */
+        d.tasks[i].doneAt = next === "Done" ? new Date().toISOString() : null;
       }, next === "Done" ? "Tick #" + ref + " done" : "Reopen #" + ref);
     } catch (e) {
       if (btn) btn.disabled = false;
