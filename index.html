@@ -774,6 +774,34 @@ body{
 .hello .hi-2{font-family:"Nunito",sans-serif;font-size:14.5px;color:var(--ink-2);font-weight:600}
 @media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
 
+/* ---------- task panel: slides in from the right ---------- */
+.scrim.on{align-items:stretch;justify-content:flex-end;padding:0}
+@media (min-width:720px){.scrim.on{align-items:stretch;padding:0}}
+.sheet{width:min(580px,100%);max-width:none;height:100%;max-height:none;
+  border-radius:0;border:0;border-left:1px solid var(--edge);
+  box-shadow:-20px 0 60px rgba(36,28,20,.22);
+  padding:0 0 calc(28px + env(safe-area-inset-bottom))}
+@media (min-width:720px){.sheet{border-radius:0}}
+@media (prefers-reduced-motion:no-preference){
+  .scrim.on .sheet{animation:slidein .32s cubic-bezier(.16,1,.3,1)}
+  @keyframes slidein{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
+}
+.shead h3{font-family:"Fredoka",sans-serif;font-size:16px;letter-spacing:.02em;
+  text-transform:none;color:var(--ink)}
+.sdone{margin:0 15px;padding:9px 12px;border-radius:12px;background:#E7F2E9;
+  color:var(--good);font-size:13px;font-weight:700}
+
+/* progress notes */
+.notes{padding:2px 15px 0}
+.note{border-left:4px solid var(--accent);background:var(--panel-2);
+  border-radius:0 12px 12px 0;padding:10px 13px;margin-bottom:9px}
+.note .nwhen{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);
+  letter-spacing:.09em;text-transform:uppercase}
+.note .ntext{font-size:14px;color:var(--ink-2);margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.nonotes{padding:2px 15px 0;font-size:13.5px;color:var(--ink-3)}
+.nhead{padding:20px 15px 0;font-family:"JetBrains Mono",monospace;font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+
 /* ---------- done log ---------- */
 .dlog{padding:6px 0 12px;max-height:420px;overflow-y:auto}
 .dday{display:flex;align-items:baseline;gap:10px;padding:12px 17px 7px;position:sticky;top:0;
@@ -1264,6 +1292,17 @@ body{
       <button class="btn primary" id="sh-save" type="button">Save</button>
       <button class="btn" id="sh-cancel" type="button">Cancel</button>
     </div>
+
+    <div id="sh-donestamp"></div>
+
+    <div class="nhead">Progress notes</div>
+    <div class="fld">
+      <textarea id="f-note" placeholder="Where has this got to? Saved with today's date."></textarea>
+      <div class="sactions" style="padding:10px 0 0">
+        <button class="btn" id="sh-note" type="button">Add note</button>
+      </div>
+    </div>
+    <div id="sh-notes"></div>
   </div>
 </div>
 
@@ -1673,6 +1712,8 @@ body{
       m += '<span class="chip status ' + (t.status === "Done" ? "good" : t.status === "Waiting on Someone" ? "warning" : "") +
            '">' + esc(String(t.status).toUpperCase()) + "</span>";
     (Array.isArray(t.people) ? t.people : []).forEach((p) => { m += '<span class="chip accent">' + esc(p) + "</span>"; });
+    const nn = Array.isArray(t.notes) ? t.notes.length : 0;
+    if (nn) m += '<span class="chip">' + nn + (nn === 1 ? " NOTE" : " NOTES") + "</span>";
     let extra = "";
     if (o.showQuestion && t.openQuestion) extra += '<div class="qtext">' + esc(t.openQuestion) + "</div>";
     if (o.showWaiting && t.waitingOn) extra += '<div class="wtext">' + esc(t.waitingOn) + "</div>";
@@ -2505,11 +2546,65 @@ body{
     $("f-prog").value = t && t.progress != null ? String(Math.round(Number(t.progress))) : "";
     $("f-wait").value = t && t.waitingOn ? t.waitingOn : "";
     $("f-q").value = t && t.openQuestion ? t.openQuestion : "";
+    $("f-note").value = "";
+    renderNotes(t);
     msg(""); $("sh-save").disabled = false;
     $("scrim").classList.add("on");
     setTimeout(() => $("f-task").focus(), 40);
   }
   function closeEditor() { $("scrim").classList.remove("on"); editing = null; }
+
+  /* ---------- progress notes ----------
+     A running log per task. Each entry is stamped when you add it, and
+     nothing is ever rewritten — newest sits at the top. */
+  const noteStamp = (iso) => {
+    const d = new Date(iso);
+    if (isNaN(d)) return "unknown time";
+    return new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short",
+      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })
+      .format(d).toUpperCase();
+  };
+
+  function renderNotes(t) {
+    const list = t && Array.isArray(t.notes) ? t.notes : [];
+    if (!t) { $("sh-notes").innerHTML = ""; return; }
+    $("sh-notes").innerHTML = list.length
+      ? '<div class="notes">' + list.map((n) =>
+          '<div class="note"><div class="nwhen">' + esc(noteStamp(n.at)) + "</div>" +
+          '<div class="ntext">' + esc(n.text) + "</div></div>").join("") + "</div>"
+      : '<div class="nonotes">Nothing logged yet. The first note you add is stamped with today&rsquo;s date and time.</div>';
+    $("sh-donestamp").innerHTML = (t.status === "Done" && t.doneAt)
+      ? '<div class="sdone">Finished ' + esc(noteStamp(t.doneAt)) + "</div>" : "";
+  }
+
+  async function addNote() {
+    if (!editing) { msg("Save this task first — notes attach to a task that exists.", true); return; }
+    const text = $("f-note").value.trim();
+    if (!text) { msg("Write the note first.", true); return; }
+    if (text.length > 2000) { msg("That note is too long — 2000 characters at most.", true); return; }
+    const ref = editing.ref;
+    $("sh-note").disabled = true; msg("Adding&hellip;");
+    try {
+      await write((d) => {
+        const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+        if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+        if (!Array.isArray(d.tasks[i].notes)) d.tasks[i].notes = [];
+        d.tasks[i].notes.unshift({ at: new Date().toISOString(), text: text });
+      }, "Note on #" + ref);
+      $("f-note").value = "";
+      /* the write re-rendered everything, so pick the task up fresh */
+      editing = rows.find((r) => String(r.ref) === String(ref)) || editing;
+      renderNotes(editing);
+      msg("Note added.");
+    } catch (e) {
+      if (e && e.status === 401) { closeEditor(); showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { closeEditor(); conflictBanner(); return; }
+      msg(saveError(e), true);
+    } finally {
+      $("sh-note").disabled = false;
+    }
+  }
+  $("sh-note").addEventListener("click", addNote);
 
   /* "Ada,  bob , Ada" -> ["Ada","bob"] */
   function parsePeople(s) {
