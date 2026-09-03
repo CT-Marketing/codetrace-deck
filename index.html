@@ -791,8 +791,25 @@ body{
 .sdone{margin:0 15px;padding:9px 12px;border-radius:12px;background:#E7F2E9;
   color:var(--good);font-size:13px;font-weight:700}
 
+/* note formatting toolbar */
+.ntools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ntools button{font-family:"JetBrains Mono",monospace;font-size:12px;min-width:34px;min-height:34px;
+  padding:6px 10px;border-radius:10px;border:1px solid var(--edge);background:var(--panel);
+  color:var(--ink-2);cursor:pointer;line-height:1}
+.ntools button:hover,.ntools button:focus-visible{border-color:var(--ink);color:var(--ink)}
+.ntools .b{font-weight:800}
+.ntools .i{font-style:italic}
+.ntools .u{text-decoration:underline}
+.nhint{font-size:11.5px;color:var(--ink-3);margin-top:7px;font-family:"JetBrains Mono",monospace}
+
 /* progress notes */
 .notes{padding:2px 15px 0}
+.note .ntext p{margin:0 0 7px}
+.note .ntext p:last-child{margin-bottom:0}
+.note .ntext ul{margin:5px 0 7px;padding-left:20px}
+.note .ntext li{margin-bottom:3px}
+.note .ntext strong{color:var(--ink);font-weight:800}
+.note .ntext u{text-decoration:underline;text-underline-offset:2px}
 .note{border-left:4px solid var(--accent);background:var(--panel-2);
   border-radius:0 12px 12px 0;padding:10px 13px;margin-bottom:9px}
 .note .nwhen{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);
@@ -1297,7 +1314,14 @@ body{
 
     <div class="nhead">Progress notes</div>
     <div class="fld">
+      <div class="ntools">
+        <button type="button" class="b" data-fmt="bold"      title="Bold">B</button>
+        <button type="button" class="i" data-fmt="italic"    title="Italic">I</button>
+        <button type="button" class="u" data-fmt="underline" title="Underline">U</button>
+        <button type="button"           data-fmt="bullet"    title="Bullet point">&bull;</button>
+      </div>
       <textarea id="f-note" placeholder="Where has this got to? Saved with today's date."></textarea>
+      <div class="nhint">**bold** · *italic* · __underline__ · - bullet</div>
       <div class="sactions" style="padding:10px 0 0">
         <button class="btn" id="sh-note" type="button">Add note</button>
       </div>
@@ -2565,13 +2589,67 @@ body{
       .format(d).toUpperCase();
   };
 
+  /* ---------- note formatting ----------
+     Notes are stored as plain text with markdown marks, never as HTML. The
+     renderer escapes everything first and then only ever introduces a fixed
+     set of tags with no attributes — so nothing written into a note can
+     inject markup, and the raw file stays readable on github.com. */
+  function noteHTML(text) {
+    const inline = (s) => s
+      .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_\n]+)__/g, "<u>$1</u>")
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+    const lines = esc(text).split(/\r?\n/);
+    let out = "", inList = false;
+    lines.forEach((l) => {
+      const b = l.match(/^\s*[-*]\s+(.*)$/);
+      if (b) {
+        if (!inList) { out += "<ul>"; inList = true; }
+        out += "<li>" + inline(b[1]) + "</li>";
+      } else {
+        if (inList) { out += "</ul>"; inList = false; }
+        if (l.trim()) out += "<p>" + inline(l) + "</p>";
+      }
+    });
+    if (inList) out += "</ul>";
+    return out || "<p></p>";
+  }
+
+  /* toolbar: wraps the selection, or the word you are on */
+  function applyFmt(kind) {
+    const el = $("f-note");
+    const v = el.value, s = el.selectionStart, e = el.selectionEnd;
+    if (kind === "bullet") {
+      /* prefix every line the selection touches */
+      const from = v.lastIndexOf("\n", s - 1) + 1;
+      let to = v.indexOf("\n", e); if (to === -1) to = v.length;
+      const block = v.slice(from, to).split("\n")
+        .map((l) => (/^\s*[-*]\s+/.test(l) ? l : "- " + l)).join("\n");
+      el.value = v.slice(0, from) + block + v.slice(to);
+      el.focus();
+      el.setSelectionRange(from + block.length, from + block.length);
+      return;
+    }
+    const marks = { bold: "**", italic: "*", underline: "__" };
+    const m = marks[kind];
+    const sel = v.slice(s, e);
+    const body = sel || kind;
+    el.value = v.slice(0, s) + m + body + m + v.slice(e);
+    el.focus();
+    el.setSelectionRange(s + m.length, s + m.length + body.length);
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-fmt]");
+    if (b) { e.preventDefault(); applyFmt(b.dataset.fmt); }
+  });
+
   function renderNotes(t) {
     const list = t && Array.isArray(t.notes) ? t.notes : [];
     if (!t) { $("sh-notes").innerHTML = ""; return; }
     $("sh-notes").innerHTML = list.length
       ? '<div class="notes">' + list.map((n) =>
           '<div class="note"><div class="nwhen">' + esc(noteStamp(n.at)) + "</div>" +
-          '<div class="ntext">' + esc(n.text) + "</div></div>").join("") + "</div>"
+          '<div class="ntext">' + noteHTML(n.text) + "</div></div>").join("") + "</div>"
       : '<div class="nonotes">Nothing logged yet. The first note you add is stamped with today&rsquo;s date and time.</div>';
     $("sh-donestamp").innerHTML = (t.status === "Done" && t.doneAt)
       ? '<div class="sdone">Finished ' + esc(noteStamp(t.doneAt)) + "</div>" : "";
