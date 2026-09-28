@@ -100,6 +100,29 @@ test('every task lands in exactly one of the three columns', () => {
   }
 });
 
+test('name suggestions rank starts-with above contains, and hide names already picked', () => {
+  /* mirrors acOpen() in index.html */
+  const rank = (people, needleRaw, alreadyRaw) => {
+    const needle = needleRaw.toLowerCase();
+    const taken = new Set(alreadyRaw.map((p) => p.toLowerCase()));
+    const pool = people.filter((p) => !taken.has(p.toLowerCase()) || p.toLowerCase() === needle);
+    const starts = pool.filter((p) => p.toLowerCase().startsWith(needle));
+    const inside = pool.filter((p) => !p.toLowerCase().startsWith(needle) && p.toLowerCase().includes(needle));
+    return needle ? starts.concat(inside) : pool;
+  };
+  const staff = ['Jason Ng', 'Pang', 'Pei Qin', 'Kevin Teoh', 'Ken Ho', 'Kenny Lam', 'Anisa'];
+
+  assert.deepEqual(rank(staff, 'P', []), ['Pang', 'Pei Qin'], 'typing P offers both P names');
+  assert.deepEqual(rank(staff, 'ken', []), ['Ken Ho', 'Kenny Lam'],
+    'Kevin Teoh does not contain "ken", so it must not appear');
+  assert.deepEqual(rank(staff, 'an', []), ['Anisa', 'Pang'],
+    'starts-with ranks above a mid-word match: Anisa before Pang');
+  assert.deepEqual(rank(staff, 'p', ['Pang']), ['Pei Qin'], 'someone already on the task drops out');
+  assert.deepEqual(rank(staff, 'zzz', []), [], 'no match returns nothing rather than everything');
+  assert.equal(rank(staff, '', []).length, staff.length, 'empty query offers everyone');
+  assert.equal(rank([], 'p', []).length, 0, 'an empty staff list cannot suggest anyone');
+});
+
 test('the date helpers agree with each other', () => {
   const addDays = (iso, n) =>
     new Date(Date.parse(iso + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);

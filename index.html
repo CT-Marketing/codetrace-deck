@@ -2933,9 +2933,11 @@ body{
 
     const l = $("f-people-list");
     if (!acMatches.length) {
-      l.innerHTML = needle
-        ? '<div class="acnone">No one matches &ldquo;' + esc(q.text) + '&rdquo;. Type it out and it will be remembered.</div>'
-        : '<div class="acnone">Everyone on the list is already on this task.</div>';
+      l.innerHTML = !PEOPLE.length
+        ? '<div class="acnone">No staff list loaded. Add a <code>vocab.people</code> list to tasks.json, or just type the name.</div>'
+        : needle
+          ? '<div class="acnone">No one matches &ldquo;' + esc(q.text) + '&rdquo;. Type it out and it will be remembered.</div>'
+          : '<div class="acnone">Everyone on the list is already on this task.</div>';
     } else {
       l.innerHTML = acMatches.map((p, i) => {
         const at = p.toLowerCase().indexOf(needle);
