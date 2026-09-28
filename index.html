@@ -609,8 +609,10 @@ body{font-size:17.5px;line-height:1.6}
 .empty{padding:22px 18px;font-size:16px}
 .filterbar{padding:13px 17px}
 .filterbar input{font-size:16px;padding:11px 13px;min-height:46px}
-.tabs button{font-size:13px;letter-spacing:.09em;padding:14px 8px 13px}
-.tabs button .bnum{font-size:21px}
+/* labels only now — the counts they used to carry were a third copy of
+   numbers already in the greeting and the board's filter chips */
+.tabs button{font-size:15px;letter-spacing:.07em;padding:17px 10px;font-weight:700;
+  justify-content:center}
 .sysrow{padding:15px 17px}
 .sysrow .nm{font-size:12.5px}
 .sysrow .ds{font-size:14px}
@@ -763,18 +765,18 @@ body{
 .panel:nth-of-type(4) .phead{background:linear-gradient(180deg,var(--c-partn),var(--panel))}
 .panel:nth-of-type(5) .phead{background:linear-gradient(180deg,var(--c-lilac),var(--panel))}
 
-/* the greeting */
+/* The one summary line. It replaced a five-tile stat strip that repeated
+   numbers already shown in the greeting and in the board's filter chips. */
 .hello{display:flex;align-items:center;gap:16px;margin-top:var(--gap);
-  padding:20px 22px;border-radius:22px;
+  padding:20px 24px;border-radius:22px;
   background:linear-gradient(120deg,var(--c-brand) 0%,var(--c-admin) 55%,var(--c-event) 100%);
   box-shadow:0 3px 14px rgba(120,95,65,.10)}
-.hello .hi-mark{width:58px;height:58px;flex:none;display:block;
-  filter:drop-shadow(0 3px 6px rgba(120,95,65,.28))}
-.hello .hi-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
-.hello .hi-1{font-family:"Fredoka",sans-serif;font-size:clamp(20px,3.4vw,28px);
+.hello .hi-txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hello .hi-1{font-family:"Fredoka",sans-serif;font-size:clamp(22px,3.6vw,30px);
   font-weight:600;color:var(--ink);line-height:1.15}
-.hello .hi-2{font-family:"Nunito",sans-serif;font-size:16px;color:var(--ink-2);font-weight:600}
-@media (max-width:520px){.hello{padding:16px;gap:12px}.hello .hi-mark{width:46px;height:46px}}
+.hello .hi-2{font-family:"Nunito",sans-serif;font-size:17px;color:var(--ink-2);font-weight:600}
+.hello .hi-2 b{color:var(--critical);font-weight:800}
+@media (max-width:520px){.hello{padding:17px 18px}}
 
 /* ---------- task panel: slides in from the right ---------- */
 .scrim.on{align-items:stretch;justify-content:flex-end;padding:0}
@@ -1188,25 +1190,16 @@ body{
   </div>
 
   <div class="hello">
-    <img class="hi-mark" src="blossom.png" alt="" width="512" height="512">
     <div class="hi-txt">
       <span class="hi-1" id="hi-greet">Hello</span>
       <span class="hi-2" id="hi-sub">Loading your board&hellip;</span>
     </div>
   </div>
 
-  <div class="feed">
-    <div class="stat"><span class="n is-accent" id="s-open">–</span><span class="l">Open</span></div>
-    <div class="stat"><span class="n is-critical" id="s-today">–</span><span class="l">Today</span></div>
-    <div class="stat"><span class="n is-warning" id="s-wait">–</span><span class="l">Blocked</span></div>
-    <div class="stat"><span class="n is-question" id="s-q">–</span><span class="l">Questions</span></div>
-    <div class="stat"><span class="n is-good" id="s-done">–</span><span class="l">Done</span></div>
-  </div>
-
   <nav class="tabs" role="tablist" aria-label="Views">
-    <button role="tab" data-view="command" aria-selected="true"><span class="bnum" id="t-cmd">–</span>Command</button>
-    <button role="tab" data-view="board" aria-selected="false"><span class="bnum" id="t-board">–</span>Board</button>
-    <button role="tab" data-view="week" aria-selected="false"><span class="bnum" id="t-week">–</span>Week</button>
+    <button role="tab" data-view="command" aria-selected="true">Command</button>
+    <button role="tab" data-view="board" aria-selected="false">Board</button>
+    <button role="tab" data-view="week" aria-selected="false">Week</button>
   </nav>
 
   <section class="view on" id="v-command">
@@ -2050,7 +2043,7 @@ body{
 
     $("b-board").innerHTML = html;
     $("c-board").textContent = open.length + " open · " + (rows.length - open.length) + " done";
-    $("t-board").textContent = open.length;
+
   }
 
   /* filter chips */
@@ -2166,7 +2159,7 @@ body{
 
     const dated = open.filter((t) => t.due && days.includes(t.due)).length;
     $("c-week-b").textContent = dated + " scheduled · " + pending.length + " pending";
-    $("t-week").textContent = dated;
+
     $("b-week-board").innerHTML = html;
   }
 
@@ -2632,11 +2625,6 @@ body{
     const waiting = open.filter((r) => (r.waitingOn && String(r.waitingOn).trim()) || r.status === "Waiting on Someone");
     const questions = open.filter((r) => r.openQuestion && String(r.openQuestion).trim());
 
-    $("s-open").textContent = open.length;
-    $("s-today").textContent = todays.length;
-    $("s-wait").textContent = waiting.length;
-    $("s-q").textContent = questions.length;
-    $("s-done").textContent = done.length;
 
     const undated = open.filter((r) => !r.due).length;
 
@@ -2655,7 +2643,7 @@ body{
       bigs.push({ name: p.task, pct: pct / 100, mid: pct + "%", sub: "by hand" });
     });
     $("c-big").textContent = bigs.length;
-    $("t-cmd").textContent = rows.length;
+
     $("b-big").innerHTML = bigs.length
       ? '<div class="bigrings">' + bigs.map((b) => {
           const tone = b.pct >= 1 ? "good" : b.pct > 0 ? "accent" : "warning";
@@ -2691,15 +2679,22 @@ body{
       { timeZone: TZ, hour: "2-digit", hour12: false }).format(new Date()));
     $("hi-greet").textContent =
       hr < 5 ? "Still up?" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+    /* This is now the only summary on the page, so it says the smallest
+       true thing rather than listing every count. Overdue is bolded red
+       because it is the only number that is actually a problem. */
     const overdueN = open.filter((r) => r.due && dayDiff(r.due, TODAY) < 0).length;
+    const n = (v, one, many) => v + " " + (v === 1 ? one : many);
     let sub;
-    if (!open.length) sub = "Nothing open. The board is clear.";
-    else if (overdueN) sub = overdueN + (overdueN === 1 ? " task is" : " tasks are") + " overdue · " +
-      todays.length + " due now · " + open.length + " open";
-    else if (todays.length) sub = todays.length + (todays.length === 1 ? " task needs" : " tasks need") +
-      " you today · " + open.length + " open";
-    else sub = "Nothing due today · " + open.length + " open · " + questions.length + " waiting on a decision";
-    $("hi-sub").textContent = sub;
+    if (!open.length) {
+      sub = "Nothing open. The board is clear.";
+    } else if (overdueN) {
+      sub = "<b>" + n(overdueN, "task", "tasks") + " overdue</b> · " + n(open.length, "task", "tasks") + " open";
+    } else if (todays.length) {
+      sub = n(todays.length, "task", "tasks") + " due now · " + n(open.length, "task", "tasks") + " open";
+    } else {
+      sub = "Nothing due · " + n(open.length, "task", "tasks") + " open";
+    }
+    $("hi-sub").innerHTML = sub;
 
     $("foot-store").textContent = "Store: GitHub · " + REPO;
     $("foot-upd").textContent = "Last saved " + stamp(doc && doc.updated);
@@ -2711,8 +2706,6 @@ body{
                   "b-status", "b-act", "b-map", "b-week-board", "b-ten", "b-done-log"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
-    ["s-open", "s-today", "s-wait", "s-q", "s-done", "t-cmd", "t-board", "t-week"]
-      .forEach((id) => { $(id).textContent = "–"; });
     $("hud-gauges").innerHTML = ""; $("hud-strip").innerHTML = ""; $("c-cmd").textContent = "";
   }
 
