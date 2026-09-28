@@ -123,6 +123,46 @@ test('name suggestions rank starts-with above contains, and hide names already p
   assert.equal(rank([], 'p', []).length, 0, 'an empty staff list cannot suggest anyone');
 });
 
+test('deleting a task removes it and leaves no dangling subtask references', () => {
+  /* mirrors the mutation inside doDelete() in index.html */
+  const remove = (doc, ref) => {
+    const d = structuredClone(doc);
+    const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+    if (i < 0) throw new Error('gone');
+    d.tasks.splice(i, 1);
+    d.tasks.forEach((r) => {
+      if (Array.isArray(r.subtasks) && r.subtasks.length) {
+        r.subtasks = r.subtasks.filter((k) => String(k) !== String(ref));
+      }
+    });
+    return d;
+  };
+
+  const doc = {
+    nextRef: 5,
+    tasks: [
+      { ref: 1, task: 'parent', subtasks: [2, 3] },
+      { ref: 2, task: 'child a', subtasks: [] },
+      { ref: 3, task: 'child b', subtasks: [] },
+      { ref: 4, task: 'unrelated', subtasks: [3] }
+    ]
+  };
+
+  const after = remove(doc, 3);
+  assert.equal(after.tasks.length, 3, 'exactly one task removed');
+  assert.ok(!after.tasks.some((t) => t.ref === 3), 'the task is gone');
+  assert.deepEqual(after.tasks.find((t) => t.ref === 1).subtasks, [2], 'parent no longer points at it');
+  assert.deepEqual(after.tasks.find((t) => t.ref === 4).subtasks, [], 'every other reference cleared too');
+
+  const every = after.tasks.flatMap((t) => t.subtasks || []);
+  const live = new Set(after.tasks.map((t) => t.ref));
+  assert.deepEqual(every.filter((k) => !live.has(k)), [], 'no subtask points at a missing task');
+
+  assert.equal(after.nextRef, 5, 'nextRef must not wind back, or a deleted ref gets reused');
+  assert.equal(doc.tasks.length, 4, 'the original document is not mutated');
+  assert.throws(() => remove(doc, 99), /gone/, 'deleting something absent fails loudly');
+});
+
 test('the date helpers agree with each other', () => {
   const addDays = (iso, n) =>
     new Date(Date.parse(iso + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);

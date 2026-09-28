@@ -795,6 +795,21 @@ body{
 .sdone{margin:0 15px;padding:9px 12px;border-radius:12px;background:#E7F2E9;
   color:var(--good);font-size:13px;font-weight:700}
 
+/* ---------- delete ----------
+   Kept well away from Save so a misclick cannot reach it, and it asks
+   before doing anything. */
+.danger-zone{margin:26px 15px 0;padding-top:18px;border-top:1px solid var(--edge)}
+.btn.del{width:100%;border-color:#E3B4B4;color:var(--critical);background:var(--panel)}
+.btn.del:hover,.btn.del:focus-visible{background:var(--critical);border-color:var(--critical);color:#fff}
+.delconfirm{display:flex;flex-direction:column;gap:10px}
+.delconfirm .dq{font-size:15px;color:var(--ink-2)}
+.delconfirm .dq b{color:var(--critical)}
+.delrow{display:flex;gap:9px;flex-wrap:wrap}
+.delrow .btn{flex:1;min-width:130px}
+.btn.delyes{background:var(--critical);border-color:var(--critical);color:#fff;font-weight:700}
+.btn.delyes:hover,.btn.delyes:focus-visible{background:#8C0F22;border-color:#8C0F22;color:#fff}
+.delnote{font-size:12.5px;color:var(--ink-3);font-family:"JetBrains Mono",monospace}
+
 /* ---------- name autocomplete ---------- */
 .acwrap{position:relative}
 .aclist{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:5;
@@ -1387,6 +1402,8 @@ body{
       </div>
     </div>
     <div id="sh-notes"></div>
+
+    <div class="danger-zone" id="sh-danger"></div>
   </div>
 </div>
 
@@ -2775,6 +2792,7 @@ body{
     $("f-q").value = t && t.openQuestion ? t.openQuestion : "";
     $("f-note").value = "";
     renderNotes(t);
+    renderDanger(t);
     msg(""); $("sh-save").disabled = false;
     $("scrim").classList.add("on");
     setTimeout(() => $("f-task").focus(), 40);
@@ -2899,6 +2917,70 @@ body{
     });
     return out;
   }
+
+  /* ---------- delete ----------
+     Two steps, because there is no undo button in the app. The task does
+     survive in the repo's history, so this is recoverable — but only by
+     going and finding it, which is not something to rely on. */
+  function renderDanger(t) {
+    $("sh-danger").innerHTML = t
+      ? '<button class="btn del" type="button" id="sh-del">Delete this task</button>'
+      : "";
+  }
+
+  function askDelete() {
+    if (!editing) return;
+    const t = editing;
+    const kids = rows.filter((r) => Array.isArray(r.subtasks) &&
+      r.subtasks.some((k) => String(k) === String(t.ref)));
+    const nn = Array.isArray(t.notes) ? t.notes.length : 0;
+    $("sh-danger").innerHTML =
+      '<div class="delconfirm">' +
+        '<span class="dq">Delete <b>#' + esc(t.ref) + " " + esc(t.task || "(untitled)") + "</b>?" +
+          (nn ? " Its " + nn + (nn === 1 ? " note goes" : " notes go") + " too." : "") +
+          (kids.length ? " It will also be unlinked from " + kids.length + " parent task." : "") +
+        "</span>" +
+        '<div class="delrow">' +
+          '<button class="btn delyes" type="button" id="sh-del-yes">Yes, delete it</button>' +
+          '<button class="btn" type="button" id="sh-del-no">Keep it</button>' +
+        "</div>" +
+        '<span class="delnote">Recoverable from the repo history, but not from here.</span>' +
+      "</div>";
+  }
+
+  async function doDelete() {
+    if (!editing) return;
+    const ref = editing.ref;
+    $("sh-danger").innerHTML = '<span class="delnote">Deleting&hellip;</span>';
+    try {
+      await write((d) => {
+        const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+        if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+        d.tasks.splice(i, 1);
+        /* never leave a parent pointing at a task that no longer exists */
+        d.tasks.forEach((r) => {
+          if (Array.isArray(r.subtasks) && r.subtasks.length) {
+            r.subtasks = r.subtasks.filter((k) => String(k) !== String(ref));
+          }
+        });
+        /* nextRef is never wound back — a deleted ref must not be reused */
+      }, "Delete #" + ref);
+      closeEditor();
+      banner("Deleted <b>#" + esc(ref) + "</b>. It is still in the repository history if you need it back.", "warn", false);
+    } catch (e) {
+      conn(hasData ? "live" : "down", hasData ? "live" : "error");
+      if (e && e.status === 401) { closeEditor(); showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { closeEditor(); conflictBanner(); return; }
+      renderDanger(editing);
+      msg("Nothing was deleted. " + saveError(e), true);
+    }
+  }
+
+  $("sh-danger").addEventListener("click", (e) => {
+    if (e.target.closest("#sh-del"))     { askDelete(); return; }
+    if (e.target.closest("#sh-del-no"))  { renderDanger(editing); return; }
+    if (e.target.closest("#sh-del-yes")) { doDelete(); }
+  });
 
   /* ---------- name autocomplete ----------
      The field stays a comma-separated text box, so you can still type
