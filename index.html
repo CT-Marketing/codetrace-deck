@@ -795,6 +795,20 @@ body{
 .sdone{margin:0 15px;padding:9px 12px;border-radius:12px;background:#E7F2E9;
   color:var(--good);font-size:13px;font-weight:700}
 
+/* ---------- name autocomplete ---------- */
+.acwrap{position:relative}
+.aclist{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:5;
+  background:var(--panel);border:1px solid var(--edge);border-radius:14px;
+  box-shadow:0 10px 30px rgba(120,95,65,.22);overflow:hidden;max-height:260px;overflow-y:auto}
+.aclist[hidden]{display:none}
+.acitem{display:block;width:100%;text-align:left;font:inherit;font-size:16px;
+  padding:11px 15px;background:none;border:0;color:var(--ink);cursor:pointer}
+.acitem + .acitem{border-top:1px solid var(--edge-soft)}
+.acitem:hover,.acitem.sel{background:var(--accent);color:var(--on-accent)}
+.acitem b{font-weight:800;text-decoration:underline;text-underline-offset:2px}
+.acnone{padding:11px 15px;font-size:14.5px;color:var(--ink-3)}
+.achint{margin-top:7px;font-size:12.5px;color:var(--ink-3);font-family:"JetBrains Mono",monospace}
+
 /* note formatting toolbar */
 .ntools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .ntools button{font-family:"JetBrains Mono",monospace;font-size:12px;min-width:34px;min-height:34px;
@@ -1336,8 +1350,14 @@ body{
       <input type="text" id="f-catnew" autocomplete="off" style="margin-top:9px"
              placeholder="…or type a new category"></div>
     <div class="fld"><label for="f-people">People</label>
-      <input type="text" id="f-people" autocomplete="off"
-             placeholder="Names, separated by commas"></div>
+      <div class="acwrap">
+        <input type="text" id="f-people" autocomplete="off" role="combobox"
+               aria-expanded="false" aria-autocomplete="list" aria-controls="f-people-list"
+               placeholder="Start typing a name&hellip;">
+        <div class="aclist" id="f-people-list" role="listbox" hidden></div>
+      </div>
+      <div class="achint">Type a letter to see who matches · &uarr;&darr; to pick · comma for the next name</div>
+    </div>
     <div class="fld srow">
       <div><label for="f-due">Due</label><input type="date" id="f-due"></div>
       <div><label for="f-prog">Progress %</label><input type="number" id="f-prog" min="0" max="100" step="5" inputmode="numeric"></div>
@@ -2748,6 +2768,7 @@ body{
     segment($("f-category"), CATEGORIES, t && CATEGORIES.includes(t.category) ? t.category : null, false);
     $("f-catnew").value = (t && t.category && !CATEGORIES.includes(t.category)) ? t.category : "";
     $("f-people").value = t && Array.isArray(t.people) ? t.people.join(", ") : "";
+    acClose();
     $("f-due").value = t && t.due ? t.due : "";
     $("f-prog").value = t && t.progress != null ? String(Math.round(Number(t.progress))) : "";
     $("f-wait").value = t && t.waitingOn ? t.waitingOn : "";
@@ -2878,6 +2899,96 @@ body{
     });
     return out;
   }
+
+  /* ---------- name autocomplete ----------
+     The field stays a comma-separated text box, so you can still type
+     someone who is not on the staff list. The suggestions only ever act on
+     the name you are part-way through — the part after the last comma. */
+  let acIndex = -1, acMatches = [];
+
+  const acQuery = () => {
+    const el = $("f-people");
+    const upto = el.value.slice(0, el.selectionStart ?? el.value.length);
+    const cut = Math.max(upto.lastIndexOf(","), upto.lastIndexOf(";"));
+    return { start: cut + 1, text: upto.slice(cut + 1).trim() };
+  };
+
+  function acClose() {
+    acIndex = -1; acMatches = [];
+    const l = $("f-people-list");
+    l.hidden = true; l.innerHTML = "";
+    $("f-people").setAttribute("aria-expanded", "false");
+  }
+
+  function acOpen() {
+    const el = $("f-people"), q = acQuery();
+    const taken = new Set(parsePeople(el.value).map((p) => p.toLowerCase()));
+    const needle = q.text.toLowerCase();
+    /* names already on this task drop out; starts-with beats contains */
+    const pool = PEOPLE.filter((p) => !taken.has(p.toLowerCase()) || p.toLowerCase() === needle);
+    const starts = pool.filter((p) => p.toLowerCase().startsWith(needle));
+    const inside = pool.filter((p) => !p.toLowerCase().startsWith(needle) && p.toLowerCase().includes(needle));
+    acMatches = (needle ? starts.concat(inside) : pool).slice(0, 40);
+    acIndex = acMatches.length ? 0 : -1;
+
+    const l = $("f-people-list");
+    if (!acMatches.length) {
+      l.innerHTML = needle
+        ? '<div class="acnone">No one matches &ldquo;' + esc(q.text) + '&rdquo;. Type it out and it will be remembered.</div>'
+        : '<div class="acnone">Everyone on the list is already on this task.</div>';
+    } else {
+      l.innerHTML = acMatches.map((p, i) => {
+        const at = p.toLowerCase().indexOf(needle);
+        const label = (needle && at >= 0)
+          ? esc(p.slice(0, at)) + "<b>" + esc(p.slice(at, at + needle.length)) + "</b>" + esc(p.slice(at + needle.length))
+          : esc(p);
+        return '<button type="button" class="acitem' + (i === acIndex ? " sel" : "") +
+          '" role="option" data-acpick="' + esc(p) + '">' + label + "</button>";
+      }).join("");
+    }
+    l.hidden = false;
+    $("f-people").setAttribute("aria-expanded", "true");
+  }
+
+  function acPick(name) {
+    const el = $("f-people"), q = acQuery();
+    const after = el.value.slice(el.selectionStart ?? el.value.length);
+    const before = el.value.slice(0, q.start);
+    const sep = before.trim() ? " " : "";
+    const next = before + sep + name + ", " + after.replace(/^[\s,;]+/, "");
+    el.value = next;
+    const caret = (before + sep + name + ", ").length;
+    el.focus(); el.setSelectionRange(caret, caret);
+    acClose();
+  }
+
+  function acMove(step) {
+    if (!acMatches.length) return;
+    acIndex = (acIndex + step + acMatches.length) % acMatches.length;
+    const items = $("f-people-list").querySelectorAll(".acitem");
+    items.forEach((el, i) => el.classList.toggle("sel", i === acIndex));
+    const sel = items[acIndex];
+    if (sel) sel.scrollIntoView({ block: "nearest" });
+  }
+
+  $("f-people").addEventListener("input", acOpen);
+  $("f-people").addEventListener("focus", acOpen);
+  $("f-people").addEventListener("keydown", (e) => {
+    const open = !$("f-people-list").hidden;
+    if (e.key === "ArrowDown") { e.preventDefault(); open ? acMove(1) : acOpen(); return; }
+    if (e.key === "ArrowUp")   { e.preventDefault(); if (open) acMove(-1); return; }
+    if (e.key === "Escape")    { if (open) { e.preventDefault(); acClose(); } return; }
+    if ((e.key === "Enter" || e.key === "Tab") && open && acIndex >= 0) {
+      e.preventDefault(); acPick(acMatches[acIndex]);
+    }
+  });
+  $("f-people-list").addEventListener("mousedown", (e) => {
+    const b = e.target.closest("[data-acpick]");
+    if (b) { e.preventDefault(); acPick(b.dataset.acpick); }
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".acwrap")) acClose();
+  });
 
   function formTask() {
     const due = $("f-due").value, prog = $("f-prog").value.trim();
