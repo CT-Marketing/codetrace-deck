@@ -2157,9 +2157,15 @@ body{
         list = list.slice().sort((a, b) =>
           Date.parse(b.doneAt || 0) - Date.parse(a.doneAt || 0) || b.ref - a.ref);
       } else {
+        /* Deadline first. Priority used to win, which pushed an undated
+           High above three things due today — and Medium and Low carry no
+           chip, so the order looked arbitrary. Dates are on every card, so
+           sorting by them makes the order self-explanatory. Undated sinks
+           to the bottom; priority only breaks ties on the same day. */
         list = list.slice().sort((a, b) =>
+          (a.due || "9999-12-31").localeCompare(b.due || "9999-12-31") ||
           (PRIORITIES.indexOf(a.priority) + 9) % 9 - (PRIORITIES.indexOf(b.priority) + 9) % 9 ||
-          (a.due || "9999").localeCompare(b.due || "9999") || a.ref - b.ref);
+          a.ref - b.ref);
       }
       const total = list.length;
       const shown = (c.key === "Done" && !showAllDone) ? list.slice(0, DONE_SHOWN) : list;

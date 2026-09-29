@@ -163,6 +163,43 @@ test('deleting a task removes it and leaves no dangling subtask references', () 
   assert.throws(() => remove(doc, 99), /gone/, 'deleting something absent fails loudly');
 });
 
+test('board columns sort by deadline first, priority only as a tiebreak', () => {
+  const PRIORITIES = ['Urgent Today', 'High', 'Medium', 'Low'];
+  /* mirrors the open-column sort in renderBoard() */
+  const order = (tasks) => tasks.slice().sort((a, b) =>
+    (a.due || '9999-12-31').localeCompare(b.due || '9999-12-31') ||
+    (PRIORITIES.indexOf(a.priority) + 9) % 9 - (PRIORITIES.indexOf(b.priority) + 9) % 9 ||
+    a.ref - b.ref
+  ).map((t) => t.ref);
+
+  /* the real In progress column that prompted this */
+  const column = [
+    { ref: 24, due: '2026-09-29', priority: 'High' },
+    { ref: 30, due: null,         priority: 'High' },
+    { ref: 25, due: '2026-09-30', priority: 'Medium' },
+    { ref: 32, due: '2026-09-29', priority: null },
+    { ref: 33, due: '2026-09-29', priority: null },
+    { ref: 31, due: '2026-09-30', priority: null }
+  ];
+  assert.deepEqual(order(column), [24, 32, 33, 25, 31, 30],
+    'today before tomorrow, undated last, High only wins within the same day');
+
+  assert.deepEqual(
+    order([{ ref: 2, due: null, priority: 'Urgent Today' }, { ref: 1, due: '2030-01-01', priority: 'Low' }]),
+    [1, 2],
+    'an undated urgent task still sinks below a dated one');
+
+  assert.deepEqual(
+    order([{ ref: 5, due: '2026-01-01', priority: 'Low' }, { ref: 4, due: '2026-01-01', priority: 'Urgent Today' }]),
+    [4, 5],
+    'same day: priority decides');
+
+  assert.deepEqual(
+    order([{ ref: 9, due: null, priority: null }, { ref: 7, due: null, priority: null }]),
+    [7, 9],
+    'all else equal: lowest ref first, so the order is stable');
+});
+
 test('the date helpers agree with each other', () => {
   const addDays = (iso, n) =>
     new Date(Date.parse(iso + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
