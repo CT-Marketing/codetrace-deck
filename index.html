@@ -3181,16 +3181,21 @@ body{
   /* One tap instead of typing your own name. "Me" is whichever staff entry
      matches the owner — found once from the list, not hardcoded, so it
      still works if the name is spelled differently there. */
-  const meName = () => PEOPLE.find((p) => /^emily\b/i.test(p)) || "Emily Chuah";
+  /* The owner's name is read from the data file, never written into this
+     page — same rule as the rest of the staff list. If tasks.json has no
+     "me" set, the button simply does not appear. */
+  const meName = () => (doc && typeof doc.me === "string" && doc.me.trim()) ? doc.me.trim() : null;
   function refreshMeBtn() {
     const btn = $("f-me"); if (!btn) return;
     const me = meName();
+    if (!me) { btn.hidden = true; return; }
     const already = parsePeople($("f-people").value).some((p) => p.toLowerCase() === me.toLowerCase());
     btn.hidden = already;
     btn.textContent = "Assign to " + me.split(" ")[0];
   }
   $("f-me").addEventListener("click", () => {
-    const me = meName(), el = $("f-people");
+    const me = meName(); if (!me) return;
+    const el = $("f-people");
     const list = parsePeople(el.value);
     if (!list.some((p) => p.toLowerCase() === me.toLowerCase())) list.push(me);
     el.value = list.join(", ");
