@@ -795,6 +795,20 @@ body{
 .sdone{margin:0 15px;padding:9px 12px;border-radius:12px;background:#E7F2E9;
   color:var(--good);font-size:13px;font-weight:700}
 
+/* ---------- answering an open question ---------- */
+.qbox{margin:0 15px;padding:15px 16px;border-radius:14px;background:var(--c-lilac);
+  border-left:5px solid var(--question)}
+.qbox .ql{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--question);font-weight:700}
+.qbox .qt{font-size:16px;color:var(--ink);margin-top:7px;line-height:1.45;overflow-wrap:anywhere}
+.qbox .btn{margin-top:12px;width:100%;background:var(--panel);border-color:var(--question);color:var(--question)}
+.qbox .btn:hover,.qbox .btn:focus-visible{background:var(--question);border-color:var(--question);color:#fff}
+.qbox textarea{margin-top:11px;background:var(--panel);width:100%}
+.qrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.qrow .btn{flex:1;min-width:130px;margin-top:0}
+.qrow .btn.primary{background:var(--question);border-color:var(--question);color:#fff}
+.qrow .btn.primary:hover,.qrow .btn.primary:focus-visible{background:#48309C;border-color:#48309C;color:#fff}
+
 /* ---------- delete ----------
    Kept well away from Save so a misclick cannot reach it, and it asks
    before doing anything. */
@@ -823,6 +837,8 @@ body{
 .acitem b{font-weight:800;text-decoration:underline;text-underline-offset:2px}
 .acnone{padding:11px 15px;font-size:14.5px;color:var(--ink-3)}
 .achint{margin-top:7px;font-size:12.5px;color:var(--ink-3);font-family:"JetBrains Mono",monospace}
+.mebtn{margin-top:9px;font-size:12.5px;padding:8px 14px;min-height:36px}
+.mebtn[hidden]{display:none}
 
 /* note formatting toolbar */
 .ntools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -872,6 +888,26 @@ body{
   text-transform:uppercase;color:var(--ink-3)}
 .tenure .ts{font-size:14.5px;color:var(--ink-2);font-weight:600;margin-top:7px}
 .tenure .tanniv{font-size:13px;color:var(--ink-3);margin-top:2px}
+
+/* ---------- show more ---------- */
+.morebtn{width:100%;margin-top:var(--gap);min-height:52px;font-size:14px;letter-spacing:.1em}
+.moreblock{display:flex;flex-direction:column;gap:var(--gap);margin-top:var(--gap)}
+.moreblock[hidden]{display:none}
+
+/* ---------- focus list ---------- */
+.frow{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--edge-soft)}
+.frow:last-child{border-bottom:0}
+.frow .ftick{flex:none;width:30px;height:30px;border-radius:10px;border:2px solid var(--ink-3);
+  background:transparent;cursor:pointer;color:transparent;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.frow .ftick:hover,.frow .ftick:focus-visible{border-color:var(--good);color:var(--good)}
+.frow .fmain{flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;
+  color:inherit;font:inherit;cursor:pointer}
+.frow .fti{font-size:18px;font-weight:700;color:var(--ink);line-height:1.4;overflow-wrap:anywhere}
+.frow .fmeta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:7px;
+  font-family:"JetBrains Mono",monospace;font-size:12px}
+.frow .fwhen{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-3);white-space:nowrap}
+.frow .fwhen.hot{color:var(--critical);font-weight:700}
 
 /* ---------- kanban board ---------- */
 .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
@@ -1268,28 +1304,8 @@ body{
       <div class="hudstrip" id="hud-strip"></div>
     </div>
 
-    <div class="duo">
-      <div class="panel"><div class="phead"><h2>Status mix</h2><span class="count" id="c-status"></span></div>
-        <div class="pbody" id="b-status"><div class="skel"></div></div></div>
-      <div class="panel"><div class="phead"><h2>Load by category</h2><span class="count" id="c-cat"></span></div>
-        <div class="pbody" id="b-cat"><div class="skel"></div></div></div>
-    </div>
-
-    <div class="panel"><div class="phead"><h2>What I look after</h2><span class="count" id="c-map"></span></div>
-      <div class="pbody" id="b-map"><div class="skel"></div></div></div>
-
-    <div class="panel"><div class="phead"><h2>Done log</h2><span class="count" id="c-done-log"></span></div>
-      <div class="pbody" id="b-done-log" style="padding:0"><div class="skel"></div></div></div>
-
-    <div class="panel"><div class="phead"><h2>Activity</h2><span class="count" id="c-act"></span></div>
-      <div class="pbody" id="b-act"><div class="skel"></div></div></div>
-
-    <div class="duo">
-      <div class="panel"><div class="phead"><h2>Priority mix</h2><span class="count" id="c-prio"></span></div>
-        <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
-      <div class="panel"><div class="phead"><h2>Load by person</h2><span class="count" id="c-ppl"></span></div>
-        <div class="pbody" id="b-ppl"><div class="skel"></div></div></div>
-    </div>
+    <div class="panel"><div class="phead"><h2>Focus today</h2><span class="count" id="c-focus"></span></div>
+      <div class="pbody" id="b-focus"><div class="skel"></div></div></div>
 
     <div class="panel">
       <div class="phead">
@@ -1302,18 +1318,39 @@ body{
       <div class="pbody" id="b-cal"><div class="skel"></div></div>
     </div>
 
-    <div class="panel"><div class="phead"><h2>Landing next 14 days</h2><span class="count" id="c-hz"></span></div>
-      <div class="pbody" id="b-hz"><div class="skel"></div></div></div>
+    <div class="panel"><div class="phead"><h2>Done log</h2><span class="count" id="c-done-log"></span></div>
+      <div class="pbody" id="b-done-log" style="padding:0"><div class="skel"></div></div></div>
 
-    <div class="duo">
-      <div class="panel"><div class="phead"><h2>Time at CodeTrace</h2><span class="count" id="c-ten"></span></div>
-        <div class="pbody" id="b-ten"><div class="skel"></div></div></div>
-      <div class="panel"><div class="phead"><h2>Big things</h2><span class="count" id="c-big"></span></div>
-        <div class="pbody" id="b-big"><div class="skel"></div></div></div>
+    <button class="btn morebtn" id="cmd-more-btn" type="button" aria-expanded="false"
+            aria-controls="cmd-more">Show the charts</button>
+
+    <div id="cmd-more" class="moreblock" hidden>
+      <div class="duo">
+        <div class="panel"><div class="phead"><h2>Status mix</h2><span class="count" id="c-status"></span></div>
+          <div class="pbody" id="b-status"><div class="skel"></div></div></div>
+        <div class="panel"><div class="phead"><h2>Load by category</h2><span class="count" id="c-cat"></span></div>
+          <div class="pbody" id="b-cat"><div class="skel"></div></div></div>
+      </div>
+
+      <div class="panel"><div class="phead"><h2>Priority mix</h2><span class="count" id="c-prio"></span></div>
+        <div class="pbody" id="b-prio"><div class="skel"></div></div></div>
+
+      <div class="panel"><div class="phead"><h2>Landing next 14 days</h2><span class="count" id="c-hz"></span></div>
+        <div class="pbody" id="b-hz"><div class="skel"></div></div></div>
+
+      <div class="panel"><div class="phead"><h2>Activity</h2><span class="count" id="c-act"></span></div>
+        <div class="pbody" id="b-act"><div class="skel"></div></div></div>
+
+      <div class="panel"><div class="phead"><h2>What I look after</h2><span class="count" id="c-map"></span></div>
+        <div class="pbody" id="b-map"><div class="skel"></div></div></div>
+
+      <div class="duo">
+        <div class="panel"><div class="phead"><h2>Time at CodeTrace</h2><span class="count" id="c-ten"></span></div>
+          <div class="pbody" id="b-ten"><div class="skel"></div></div></div>
+        <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
+          <div class="pbody" id="b-sys"></div></div>
+      </div>
     </div>
-
-    <div class="panel"><div class="phead"><h2>Systems</h2><span class="count">3</span></div>
-      <div class="pbody" id="b-sys"></div></div>
   </section>
 
   <section class="view" id="v-week">
@@ -1372,6 +1409,7 @@ body{
         <div class="aclist" id="f-people-list" role="listbox" hidden></div>
       </div>
       <div class="achint">Type a letter to see who matches · &uarr;&darr; to pick · comma for the next name</div>
+      <button class="btn mebtn" type="button" id="f-me">Assign to me</button>
     </div>
     <div class="fld srow">
       <div><label for="f-due">Due</label><input type="date" id="f-due"></div>
@@ -1386,6 +1424,8 @@ body{
     </div>
 
     <div id="sh-donestamp"></div>
+
+    <div id="sh-question"></div>
 
     <div class="nhead">Progress notes</div>
     <div class="fld">
@@ -1972,6 +2012,66 @@ body{
         : "year " + (nextY - s[0]) + " in " + unit(untilA, "day")) + "</span></div>";
   }
 
+  /* ---------- focus list ----------
+     The one list Command actually needs: what is due, soonest first. The
+     charts moved behind a toggle because eleven open tasks never justified
+     six of them. */
+  function renderFocus(open, todays) {
+    const pick = open.filter((t) => t.priority === "Urgent Today" || (t.due && dayDiff(t.due, TODAY) <= 2))
+      .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999") ||
+        (PRIORITIES.indexOf(a.priority) + 9) % 9 - (PRIORITIES.indexOf(b.priority) + 9) % 9);
+
+    $("c-focus").textContent = pick.length ? pick.length + " needing you" : "";
+    if (!pick.length) {
+      const next = open.filter((t) => t.due).sort((a, b) => a.due.localeCompare(b.due))[0];
+      $("b-focus").innerHTML = ok(next
+        ? "Nothing due in the next two days. Next up is <b>#" + esc(next.ref) + " " +
+          esc(next.task) + "</b> on " + esc(shortDate(next.due)) + "."
+        : open.length
+          ? "Nothing has a date in the next two days, and " + open.length +
+            " open task" + (open.length === 1 ? " has" : "s have") + " no date at all."
+          : "Nothing open. The board is clear.");
+      return;
+    }
+    $("b-focus").innerHTML = pick.map((t) => {
+      const n = t.due ? dayDiff(t.due, TODAY) : null;
+      const when = n === null ? "no date"
+        : n < 0 ? Math.abs(n) + "d late" : n === 0 ? "today" : n === 1 ? "tomorrow" : "in " + n + "d";
+      let m = '<span class="kref">#' + esc(t.ref) + "</span>";
+      if (t.category) m += '<span class="chip cat" data-c="' + esc(t.category) + '">' +
+        esc(String(t.category).toUpperCase()) + "</span>";
+      if (t.priority === "Urgent Today") m += '<span class="chip status critical">URGENT</span>';
+      if (t.status === "In Progress") m += '<span class="chip">IN PROGRESS</span>';
+      if (t.openQuestion) m += '<span class="chip">NEEDS A DECISION</span>';
+      m += '<span class="fwhen' + (n !== null && n <= 0 ? " hot" : "") + '">' + esc(when) + "</span>";
+      return '<div class="frow">' +
+        '<button class="ftick" type="button" data-kset="' + esc(t.ref) + '|Done" aria-label="Mark #' +
+          esc(t.ref) + ' done">&#10003;</button>' +
+        '<button class="fmain" type="button" data-edit="' + esc(t.ref) + '">' +
+          '<span class="fti">' + esc(t.task || "(untitled)") + "</span>" +
+          '<span class="fmeta">' + m + "</span>" +
+        "</button></div>";
+    }).join("");
+  }
+
+  /* charts live behind a toggle, and the choice sticks */
+  (function moreToggle() {
+    const KEY = "codetrace.deck.more";
+    let on = false;
+    try { on = localStorage.getItem(KEY) === "1"; } catch (e) {}
+    const apply = () => {
+      $("cmd-more").hidden = !on;
+      $("cmd-more-btn").textContent = on ? "Hide the charts" : "Show the charts";
+      $("cmd-more-btn").setAttribute("aria-expanded", on ? "true" : "false");
+    };
+    $("cmd-more-btn").addEventListener("click", () => {
+      on = !on;
+      try { on ? localStorage.setItem(KEY, "1") : localStorage.removeItem(KEY); } catch (e) {}
+      apply();
+    });
+    apply();
+  })();
+
   /* ---------- kanban board ----------
      Three columns, because that is how you think about it. "Waiting on
      Someone" is not a fourth column — it sits in Pending wearing a badge,
@@ -2498,17 +2598,7 @@ body{
       (overdue ? warn("<b>" + overdue + "</b> already overdue, which is not shown above.") : "") +
       (undated ? warn(undated + " of " + open.length + " open tasks have no date at all, so they cannot appear here.") : "");
 
-    /* ---- who is carrying what, as bars ---- */
-    const ppl = PEOPLE.map((p) => ({
-      label: p, value: open.filter((r) => Array.isArray(r.people) && r.people.includes(p)).length,
-      color: PAL.terra
-    }));
-    const nobody = open.filter((r) => !Array.isArray(r.people) || !r.people.length).length;
-    if (nobody) ppl.push({ label: "Nobody", value: nobody, color: PAL.sand });
-    $("c-ppl").textContent = open.length + " open";
-    $("b-ppl").innerHTML = !open.length ? ok("Nothing is open, so nobody is carrying anything.")
-      : !PEOPLE.length ? warn("No people are set up. Add a <code>vocab.people</code> list to tasks.json.")
-      : hbars(ppl);
+
   }
 
   /* ---- activity, from the repo's own commit history ----
@@ -2665,33 +2755,10 @@ body{
 
     const undated = open.filter((r) => !r.due).length;
 
-    const byRef = new Map(rows.map((r) => [String(r.ref), r]));
-    const parents = rows.filter((r) => Array.isArray(r.subtasks) && r.subtasks.length > 0);
-    const manual = rows.filter((r) => r.progress != null && !(Array.isArray(r.subtasks) && r.subtasks.length));
-    const bigs = [];
-    parents.forEach((p) => {
-      const kids = p.subtasks.map((k) => byRef.get(String(k))).filter(Boolean);
-      const d = kids.filter((k) => k.status === "Done").length;
-      bigs.push({ name: p.task, pct: kids.length ? d / kids.length : 0,
-                  mid: d + "/" + kids.length, sub: "#" + p.ref });
-    });
-    manual.forEach((p) => {
-      const pct = Math.max(0, Math.min(100, Math.round(Number(p.progress))));
-      bigs.push({ name: p.task, pct: pct / 100, mid: pct + "%", sub: "by hand" });
-    });
-    $("c-big").textContent = bigs.length;
 
-    $("b-big").innerHTML = bigs.length
-      ? '<div class="bigrings">' + bigs.map((b) => {
-          const tone = b.pct >= 1 ? "good" : b.pct > 0 ? "accent" : "warning";
-          return '<div class="bigring"><div class="gaugering ring-' + tone + '">' + ringSVG(b.pct, 92, 10, 0) +
-            '<div class="gaugeval"><span class="v" style="font-size:17px">' + esc(b.mid) + '</span>' +
-            '<span class="s">' + esc(b.sub) + "</span></div></div>" +
-            '<div class="nm">' + esc(b.name) + "</div></div>";
-        }).join("") + "</div>"
-      : warn("No big thing set up yet. Type a <b>Progress %</b> on any task and a ring appears here.");
 
     renderCommand(open, done, todays, week, waiting, questions);
+    renderFocus(open, todays);
     renderBoard();
     renderCalendar();
     renderWeek();
@@ -2739,7 +2806,7 @@ body{
     conn("live", "live");
   }
 
-  const PANELS = ["b-board", "b-big", "b-prio", "b-cat", "b-hz", "b-ppl", "b-cal",
+  const PANELS = ["b-board", "b-focus", "b-prio", "b-cat", "b-hz", "b-cal",
                   "b-status", "b-act", "b-map", "b-week-board", "b-ten", "b-done-log"];
   function pageMessage(html, kind) {
     PANELS.forEach((id, i) => { $(id).innerHTML = i === 0 ? note(kind, "!!", html) : ok("&mdash;"); });
@@ -2785,12 +2852,13 @@ body{
     segment($("f-category"), CATEGORIES, t && CATEGORIES.includes(t.category) ? t.category : null, false);
     $("f-catnew").value = (t && t.category && !CATEGORIES.includes(t.category)) ? t.category : "";
     $("f-people").value = t && Array.isArray(t.people) ? t.people.join(", ") : "";
-    acClose();
+    acClose(); refreshMeBtn();
     $("f-due").value = t && t.due ? t.due : "";
     $("f-prog").value = t && t.progress != null ? String(Math.round(Number(t.progress))) : "";
     $("f-wait").value = t && t.waitingOn ? t.waitingOn : "";
     $("f-q").value = t && t.openQuestion ? t.openQuestion : "";
     $("f-note").value = "";
+    renderQuestion(t);
     renderNotes(t);
     renderDanger(t);
     msg(""); $("sh-save").disabled = false;
@@ -2918,6 +2986,70 @@ body{
     return out;
   }
 
+  /* ---------- answering an open question ----------
+     Seven of eleven open tasks were sitting on an unanswered question, and
+     the app could only ever point at them. Answering here clears the
+     question and writes the decision into the notes with a date, so the
+     task unblocks and the reasoning is not lost. */
+  function renderQuestion(t) {
+    const host = $("sh-question");
+    if (!t || !t.openQuestion || !String(t.openQuestion).trim()) { host.innerHTML = ""; return; }
+    host.innerHTML =
+      '<div class="qbox"><span class="ql">Needs a decision</span>' +
+      '<div class="qt">' + esc(t.openQuestion) + "</div>" +
+      '<button class="btn" type="button" id="q-open">Answer this</button></div>';
+  }
+
+  function askAnswer() {
+    if (!editing) return;
+    $("sh-question").innerHTML =
+      '<div class="qbox"><span class="ql">Needs a decision</span>' +
+      '<div class="qt">' + esc(editing.openQuestion) + "</div>" +
+      '<textarea id="q-text" placeholder="What did you decide?"></textarea>' +
+      '<div class="qrow">' +
+        '<button class="btn primary" type="button" id="q-save">Save the decision</button>' +
+        '<button class="btn" type="button" id="q-cancel">Cancel</button>' +
+      "</div></div>";
+    setTimeout(() => $("q-text").focus(), 40);
+  }
+
+  async function saveAnswer() {
+    if (!editing) return;
+    const text = ($("q-text") ? $("q-text").value : "").trim();
+    if (!text) { msg("Write the decision first, or cancel.", true); return; }
+    if (text.length > 2000) { msg("That is too long — 2000 characters at most.", true); return; }
+    const ref = editing.ref, question = editing.openQuestion;
+    $("q-save").disabled = true; msg("Saving the decision&hellip;");
+    try {
+      await write((d) => {
+        const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
+        if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
+        if (!Array.isArray(d.tasks[i].notes)) d.tasks[i].notes = [];
+        d.tasks[i].notes.unshift({
+          at: new Date().toISOString(),
+          text: "**Decided:** " + text + "\n\n*Question was:* " + question
+        });
+        d.tasks[i].openQuestion = null;
+      }, "Answer the open question on #" + ref);
+      editing = rows.find((r) => String(r.ref) === String(ref)) || editing;
+      $("f-q").value = "";
+      renderQuestion(editing);
+      renderNotes(editing);
+      msg("Decision saved and the question closed.");
+    } catch (e) {
+      if ($("q-save")) $("q-save").disabled = false;
+      if (e && e.status === 401) { closeEditor(); showGate("That key no longer works &mdash; it has probably expired. Make a new one and paste it here."); return; }
+      if (isConflict(e)) { closeEditor(); conflictBanner(); return; }
+      msg(saveError(e), true);
+    }
+  }
+
+  $("sh-question").addEventListener("click", (e) => {
+    if (e.target.closest("#q-open"))   { askAnswer(); return; }
+    if (e.target.closest("#q-cancel")) { renderQuestion(editing); return; }
+    if (e.target.closest("#q-save"))   { saveAnswer(); }
+  });
+
   /* ---------- delete ----------
      Two steps, because there is no undo button in the app. The task does
      survive in the repo's history, so this is recoverable — but only by
@@ -2931,14 +3063,11 @@ body{
   function askDelete() {
     if (!editing) return;
     const t = editing;
-    const kids = rows.filter((r) => Array.isArray(r.subtasks) &&
-      r.subtasks.some((k) => String(k) === String(t.ref)));
     const nn = Array.isArray(t.notes) ? t.notes.length : 0;
     $("sh-danger").innerHTML =
       '<div class="delconfirm">' +
         '<span class="dq">Delete <b>#' + esc(t.ref) + " " + esc(t.task || "(untitled)") + "</b>?" +
           (nn ? " Its " + nn + (nn === 1 ? " note goes" : " notes go") + " too." : "") +
-          (kids.length ? " It will also be unlinked from " + kids.length + " parent task." : "") +
         "</span>" +
         '<div class="delrow">' +
           '<button class="btn delyes" type="button" id="sh-del-yes">Yes, delete it</button>' +
@@ -2957,12 +3086,6 @@ body{
         const i = d.tasks.findIndex((r) => String(r.ref) === String(ref));
         if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
         d.tasks.splice(i, 1);
-        /* never leave a parent pointing at a task that no longer exists */
-        d.tasks.forEach((r) => {
-          if (Array.isArray(r.subtasks) && r.subtasks.length) {
-            r.subtasks = r.subtasks.filter((k) => String(k) !== String(ref));
-          }
-        });
         /* nextRef is never wound back — a deleted ref must not be reused */
       }, "Delete #" + ref);
       closeEditor();
@@ -3055,7 +3178,26 @@ body{
     if (sel) sel.scrollIntoView({ block: "nearest" });
   }
 
-  $("f-people").addEventListener("input", acOpen);
+  /* One tap instead of typing your own name. "Me" is whichever staff entry
+     matches the owner — found once from the list, not hardcoded, so it
+     still works if the name is spelled differently there. */
+  const meName = () => PEOPLE.find((p) => /^emily\b/i.test(p)) || "Emily Chuah";
+  function refreshMeBtn() {
+    const btn = $("f-me"); if (!btn) return;
+    const me = meName();
+    const already = parsePeople($("f-people").value).some((p) => p.toLowerCase() === me.toLowerCase());
+    btn.hidden = already;
+    btn.textContent = "Assign to " + me.split(" ")[0];
+  }
+  $("f-me").addEventListener("click", () => {
+    const me = meName(), el = $("f-people");
+    const list = parsePeople(el.value);
+    if (!list.some((p) => p.toLowerCase() === me.toLowerCase())) list.push(me);
+    el.value = list.join(", ");
+    acClose(); refreshMeBtn(); el.focus();
+  });
+
+  $("f-people").addEventListener("input", () => { acOpen(); refreshMeBtn(); });
   $("f-people").addEventListener("focus", acOpen);
   $("f-people").addEventListener("keydown", (e) => {
     const open = !$("f-people-list").hidden;
@@ -3087,7 +3229,6 @@ body{
       waitingOn: $("f-wait").value.trim() || null,
       openQuestion: $("f-q").value.trim() || null,
       progress: prog === "" ? null : Number(prog),
-      subtasks: []
     };
   }
 
@@ -3103,7 +3244,7 @@ body{
           const i = d.tasks.findIndex((r) => String(r.ref) === String(editedRef));
           if (i < 0) throw { kind: "gone", message: "That task is no longer in the file." };
           const was = d.tasks[i].status, nowDone = t.status === "Done";
-          d.tasks[i] = Object.assign({}, d.tasks[i], t, { ref: d.tasks[i].ref, subtasks: d.tasks[i].subtasks || [] });
+          d.tasks[i] = Object.assign({}, d.tasks[i], t, { ref: d.tasks[i].ref });
           /* only stamp on the transition, so re-saving a finished task does
              not keep moving its completion time forward */
           if (nowDone && was !== "Done") d.tasks[i].doneAt = new Date().toISOString();
